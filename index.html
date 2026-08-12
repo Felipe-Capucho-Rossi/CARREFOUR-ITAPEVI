@@ -1310,6 +1310,10 @@ function dimSplitSetorCargo(str){
 
 function renderDimensionamento(){
   const rowsAll = DIM_DADOS.filter(d=>{
+    // Linhas zeradas (0 solicitado e 0 contratado) não representam vaga real
+    // nem colaborador real — são ruído da planilha de origem e não devem
+    // aparecer no dashboard (deixam a visualização mais limpa).
+    if(d.solicitado===0 && d.contratado===0) return false;
     if(state.unidade && d.unidade!==state.unidade) return false;
     if(state.cargo){ const {setor} = dimSplitSetorCargo(d.cargo); if(setor!==state.cargo) return false; }
     return true;
@@ -1377,7 +1381,7 @@ function renderDimensionamento(){
       return pa - pb;
     });
 
-    const cargoRowsDaUnidade = DIM_CARGO_DADOS.filter(d=> d.unidade===uni && (!state.funcao || d.cargo===state.funcao));
+    const cargoRowsDaUnidade = DIM_CARGO_DADOS.filter(d=> d.unidade===uni && (!state.funcao || d.cargo===state.funcao) && !(d.solicitado===0 && d.contratado===0));
 
     const deltaTxt = (gap)=>{
       const cls = gap<0 ? 'dim-delta-pos' : (gap>0 ? 'dim-delta-neg' : 'dim-delta-zero');
