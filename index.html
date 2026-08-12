@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dashboard Operacional & RH — Carrefour Itapevi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F0F2F5; --card:#FFF; --border:#DDE2EA; --border-light:#EAECF0;
+  --blue:#0079C2; --blue-dark:#005A9E; --blue-light:#E6F2FA;
+  --indigo:#1E3A6E; --indigo-mid:#2D5099;
+  --sb-bg:#0F1B2D; --sb-hover:#1A2D46; --sb-active:#0079C2;
+  --sb-text:#8FA8C4; --sb-text-act:#FFF;
+  --green:#0E7A43; --green-bg:#E8F5EE;
+  --amber:#B45309; --amber-bg:#FEF3C7;
+  --red:#C0281C; --red-bg:#FEE2E0;
+  --purple:#6B21A8;
+  --tx-primary:#0F1B2D; --tx-secondary:#4B5768; --tx-muted:#5C6B7E; --tx-white:#FFF;
+  --font:'Inter',system-ui,sans-serif;
+  --sidebar-w:260px; --sidebar-w-col:64px; --topbar-h:56px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:var(--font); background:var(--bg); color:var(--tx-primary); font-size:14px; -webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+img{max-width:100%;}
+
+/* ---------- layout ---------- */
+.app{display:flex; min-height:100vh;}
+.sidebar{
+  width:var(--sidebar-w); background:var(--sb-bg); flex-shrink:0; position:fixed; top:0; left:0; bottom:0;
+  overflow-y:auto; overflow-x:hidden; z-index:60; padding:18px 0 0;
+  display:flex; flex-direction:column; transition:width .2s ease;
+}
+.sb-brand{padding:0 18px 18px; display:flex; align-items:center; gap:10px; overflow:hidden;}
+.sb-brand-badge{width:36px; height:36px; border-radius:8px; background:var(--blue); display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:15px; flex-shrink:0;}
+.sb-brand-text{color:#fff; font-weight:800; font-size:14px; line-height:1.25; white-space:nowrap;}
+.sb-brand-text span{display:block; color:var(--sb-text); font-weight:600; font-size:10.5px; margin-top:1px;}
+.sb-sec{color:var(--sb-text); font-size:9px; text-transform:uppercase; letter-spacing:1.2px; font-weight:700; padding:14px 20px 6px; white-space:nowrap; overflow:hidden;}
+.sb-nav{flex:1;}
+.sb-item{display:flex; align-items:center; gap:11px; padding:9px 18px; color:var(--sb-text); font-size:13px; font-weight:500; cursor:pointer; border-left:3px solid transparent; transition:background .15s,color .15s; white-space:nowrap; overflow:hidden;}
+.sb-item:hover{background:var(--sb-hover); color:#fff;}
+.sb-item.active{background:rgba(0,121,194,.18); color:var(--sb-text-act); font-weight:600; border-left-color:var(--sb-active);}
+.sb-item svg{width:16px; height:16px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.sb-item-txt{overflow:hidden; text-overflow:ellipsis;}
+.sb-item.disabled{cursor:not-allowed; opacity:.42;}
+.sb-item.disabled:hover{background:none; color:var(--sb-text);}
+.sb-item.disabled .sb-item-txt::after{content:'· sem dados'; font-size:9.5px; font-weight:600; margin-left:5px; font-style:italic;}
+.sb-toggle{display:flex; align-items:center; gap:9px; padding:13px 18px; color:var(--sb-text); font-size:12px; font-weight:600; cursor:pointer; background:transparent; border:none; border-top:1px solid rgba(255,255,255,.08); width:100%; text-align:left; white-space:nowrap; overflow:hidden;}
+.sb-toggle:hover{background:var(--sb-hover); color:#fff;}
+.sb-toggle svg{width:15px; height:15px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:2; transition:transform .2s ease;}
+.sidebar.col{width:var(--sidebar-w-col);}
+.sidebar.col .sb-brand-text, .sidebar.col .sb-sec, .sidebar.col .sb-item-txt, .sidebar.col .sb-toggle-txt{display:none;}
+.sidebar.col .sb-item, .sidebar.col .sb-toggle{justify-content:center; padding-left:0; padding-right:0;}
+.sidebar.col .sb-item.disabled .sb-item-txt::after{content:'';}
+.sidebar.col .sb-toggle svg{transform:rotate(180deg);}
+.sb-dot{width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.6; flex-shrink:0;}
+
+.main{margin-left:var(--sidebar-w); flex:1; min-width:0; padding-bottom:60px; transition:margin-left .2s ease;}
+.main.exp{margin-left:var(--sidebar-w-col);}
+
+.sticky-header{position:sticky; top:0; z-index:50; background:var(--bg);}
+.topbar{
+  background:#fff; border-bottom:.8px solid var(--border); padding:12px 24px;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+}
+.topbar h1{font-size:17px; font-weight:800; color:var(--tx-primary);}
+.topbar .sub{font-size:12px; color:var(--tx-secondary); font-weight:500; margin-top:2px;}
+.badge-periodo{background:var(--blue-light); color:var(--blue-dark); font-weight:700; font-size:11.5px; padding:5px 11px; border-radius:20px; white-space:nowrap;}
+.hamburger{display:none; background:none; border:none; font-size:20px; color:var(--tx-primary); cursor:pointer; padding:6px;}
+
+.filter-bar{
+  background:#fff; border-bottom:1px solid var(--border); padding:10px 24px;
+  display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;
+}
+.fg{display:flex; flex-direction:column; gap:3px; min-width:130px;}
+.fg label{font-size:10.5px; font-weight:700; color:var(--tx-muted); text-transform:uppercase; letter-spacing:.4px;}
+.fg select{
+  border:1px solid var(--border); border-radius:6px; padding:7px 9px; font-size:12.5px; font-family:var(--font);
+  background:#fff; color:var(--tx-primary); min-width:130px; cursor:pointer;
+}
+.btn-clear{
+  border:1px solid var(--border); background:#fff; color:var(--tx-secondary); border-radius:6px; padding:8px 12px;
+  font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap;
+}
+.btn-clear:hover{background:var(--bg);}
+.fcount{font-size:11.5px; color:var(--tx-muted); font-weight:600; margin-left:auto; white-space:nowrap;}
+
+.content{padding:22px 24px;}
+section.psec{margin-bottom:38px; scroll-margin-top:118px;}
+.psec-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:6px;}
+.psec-head h2{font-size:16px; font-weight:800; color:var(--tx-primary);}
+.psec-head .psec-note{font-size:11.5px; color:var(--tx-secondary); font-weight:500;}
+
+/* ---------- KPI cards ---------- */
+.kpi-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;}
+.kpi{background:#fff; border-left:4px solid var(--blue); border-radius:8px; box-shadow:0 1px 3px rgba(15,27,45,.06); padding:15px 16px;}
+.kpi .kv{font-size:28px; font-weight:900; color:var(--blue); line-height:1.1;}
+.kpi .kl{font-size:11px; font-weight:700; color:var(--tx-secondary); text-transform:uppercase; letter-spacing:.4px; margin-top:6px;}
+.kpi .ks{font-size:11px; color:var(--tx-muted); margin-top:3px; font-weight:500;}
+.kpi.k-green{border-left-color:var(--green);} .kpi.k-green .kv{color:var(--green);}
+.kpi.k-amber{border-left-color:var(--amber);} .kpi.k-amber .kv{color:var(--amber);}
+.kpi.k-red{border-left-color:var(--red);} .kpi.k-red .kv{color:var(--red);}
+.kpi.k-indigo{border-left-color:var(--indigo);} .kpi.k-indigo .kv{color:var(--indigo);}
+.kpi.k-purple{border-left-color:var(--purple);} .kpi.k-purple .kv{color:var(--purple);}
+
+/* ---------- severity components ---------- */
+.dim-card-gap-badge{display:inline-block; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px;}
+.dim-gap-ok{background:var(--green-bg); color:var(--green);}
+.dim-gap-warn{background:var(--amber-bg); color:var(--amber);}
+.dim-gap-crit{background:var(--red-bg); color:var(--red);}
+.dim-gap-exc{background:var(--blue-light); color:var(--blue-dark);}
+
+.dim-pct-chip{display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:6px;}
+.dim-pct-exc{background:var(--blue-light); color:var(--blue-dark);}
+.dim-pct-ok{background:var(--green-bg); color:var(--green);}
+.dim-pct-warn{background:var(--amber-bg); color:var(--amber);}
+.dim-pct-crit{background:var(--red-bg); color:var(--red);}
+
+.cf-cell{font-weight:700;}
+.cf-baixo{color:var(--red);}
+.cf-ok{color:var(--amber);}
+.cf-alto{color:var(--green);}
+
+/* ---------- cards / tables generic ---------- */
+.card{background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px; box-shadow:0 1px 3px rgba(15,27,45,.05);}
+.card h3{font-size:13.5px; font-weight:800; margin-bottom:12px; color:var(--tx-primary);}
+.cards-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px;}
+.tbl-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:10px; background:#fff;}
+table.dtbl{border-collapse:collapse; width:100%; min-width:600px; font-size:12.5px;}
+table.dtbl th{background:var(--indigo); color:#fff; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.3px; padding:10px 12px; text-align:left; white-space:nowrap;}
+table.dtbl td{padding:9px 12px; border-bottom:1px solid var(--border-light); color:var(--tx-primary);}
+table.dtbl tbody tr:hover{background:var(--bg);}
+table.dtbl tbody tr:last-child td{border-bottom:none;}
+
+.charts-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:14px;}
+.ch{background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px; height:340px; display:flex; flex-direction:column;}
+.ch h3{font-size:13px; font-weight:800; margin-bottom:8px;}
+.ch canvas{flex:1; width:100% !important; height:100% !important;}
+.ch-donut{height:300px;} .ch-hbar{height:340px;}
+.chart-fallback-msg{font-size:12px; color:var(--tx-muted); text-align:center; padding:40px 10px;}
+
+.sub-head{margin:22px 0 10px;}
+.sub-head h3{font-size:14px; font-weight:800; color:var(--tx-primary); margin-bottom:3px;}
+.sub-head .sub-note{font-size:11.5px; color:var(--tx-secondary); font-weight:500;}
+.chart-group-label{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--indigo); margin:20px 0 8px; padding-bottom:6px; border-bottom:2px solid var(--border);}
+.chart-group-label:first-of-type{margin-top:6px;}
+.he-toolbar{display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; margin-bottom:10px;}
+.he-search-input{border:1px solid var(--border); border-radius:6px; padding:7px 9px; font-size:12.5px; font-family:var(--font); background:#fff; color:var(--tx-primary); min-width:220px;}
+.he-toolbar select{border:1px solid var(--border); border-radius:6px; padding:7px 9px; font-size:12.5px; font-family:var(--font); background:#fff; color:var(--tx-primary); min-width:220px; cursor:pointer;}
+
+.nodata-block{grid-column:1/-1; padding:28px 16px; text-align:center; background:var(--card); border:1px solid #F3D3D0; border-radius:8px;}
+.nodata-title{font-weight:700; color:var(--red); font-size:13.5px; margin-bottom:4px;}
+.nodata-sub{font-size:11.5px; color:var(--tx-secondary);}
+
+/* ---------- Grade Diaria ---------- */
+.grade-wrap{display:flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:#fff; height:clamp(380px, 60vh, 620px);}
+.grade-frozen-col{flex-shrink:0; overflow-y:scroll; overflow-x:hidden; border-right:2px solid var(--indigo); scrollbar-width:none; -ms-overflow-style:none;}
+.grade-frozen-col::-webkit-scrollbar{display:none;}
+.grade-scroll-col{flex:1; min-width:0; overflow:auto; position:relative; -webkit-overflow-scrolling:touch; touch-action:pan-x pan-y; overscroll-behavior:contain;}
+.grade-scroll-col::-webkit-scrollbar{height:11px; width:11px;}
+.grade-scroll-col::-webkit-scrollbar-thumb{background:#B7C2D0; border-radius:6px;}
+.grade-scroll-col::-webkit-scrollbar-track{background:#F0F2F5;}
+.tbl-wrap{-webkit-overflow-scrolling:touch; touch-action:pan-x pan-y; overscroll-behavior-x:contain;}
+
+table.tgrade{border-collapse:collapse; font-size:11.5px;}
+table.tgrade thead th{background:var(--indigo); color:#fff; font-weight:700; padding:6px 4px; text-align:center; white-space:normal; border:1px solid #14305F; line-height:1.25; position:sticky; top:0; z-index:3;}
+table.tgrade.tgrade-frozen thead th{z-index:4;}
+table.tgrade tbody td{padding:5px 6px; border:1px solid var(--border-light); text-align:center; background:#fff;}
+table.tgrade tbody td.daycell.weekend{background:#F1F5F9;}
+table.tgrade tbody td.daycell.weekend:hover{background:#E5EBF2;}
+.op-exc{color:var(--blue-dark);} .op-ok{color:var(--green);} .op-warn{color:var(--amber);} .op-crit{color:var(--red);}
+
+.tgrade-frozen th, .tgrade-frozen td{white-space:nowrap;}
+.tgrade-frozen col.c-nome{width:150px;} .tgrade-frozen col.c-uni{width:90px;} .tgrade-frozen col.c-setor{width:100px;} .tgrade-frozen col.c-cargo{width:110px;} .tgrade-frozen col.c-turno{width:70px;}
+.td-nome{font-weight:600; color:#0F1B2D; text-align:left !important; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.td-uni{text-align:center; font-weight:700; color:var(--indigo); font-size:11.5px;}
+.td-cargo{text-align:center; font-size:11.5px; font-weight:600; color:var(--sb-text); max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.td-turno{text-align:center; font-size:11.5px; font-weight:600; color:var(--blue); max-width:70px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+.grp-header td{background:var(--indigo-mid); color:#fff; font-weight:800; font-size:12px; padding:7px 10px; text-align:left;}
+
+.tr-res-label{text-align:right !important; font-weight:800; padding-right:10px !important; background:#F7F9FB;}
+.r-fer{color:#9900FF;} .r-ferias{color:#548235;} .r-folga{color:#000000;} .r-desl{color:#F1C232;}
+.r-fi{color:#ED0000;} .r-fj{color:#ED7D31;} .r-pres{color:#1A56DB;} .r-pct{color:#1E3A6E;}
+
+td.daycell{font-weight:800; position:relative;}
+.st-P{color:#4285F4;} .st-FJ{color:#ED7D31;} .st-FI{color:#ED0000;} .st-FOLGA{color:#000000;}
+.st-FER{color:#9900FF;} .st-FERIAS{color:#548235;} .st-D{color:#F1C232;} .st-AT{color:#ED0000;} .st-INT{color:#065F46;}
+.st-empty{color:#B7C2D0;}
+.he-dot::after{content:''; position:absolute; top:2px; right:2px; width:6px; height:6px; border-radius:50%; background:#9900FF;}
+th.wk-red{background:#ED0000 !important;}
+
+.grade-legend{display:flex; flex-wrap:wrap; gap:12px 18px; padding:12px 14px; font-size:11.5px; color:var(--tx-secondary); background:#fff; border:1px solid var(--border); border-top:none; border-radius:0 0 10px 10px;}
+.leg-item{display:flex; align-items:center; gap:6px; font-weight:600;}
+.leg-sw{width:11px; height:11px; border-radius:3px; flex-shrink:0;}
+.leg-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+
+.grade-toolbar{display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:8px;}
+.grade-arrow{width:30px; height:30px; border-radius:6px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:14px; color:var(--tx-secondary); display:none;}
+
+/* ---------- responsive ---------- */
+@media (max-width:1300px){ .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));} }
+@media (max-width:1024px){
+  .charts-grid{grid-template-columns:repeat(auto-fit,minmax(340px,1fr));}
+  .cards-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+}
+@media (max-width:900px){
+  .sidebar{transform:translateX(-100%); transition:transform .2s; box-shadow:0 0 40px rgba(0,0,0,.3);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:block;}
+  .sb-backdrop{display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:55;}
+  .sb-backdrop.show{display:block;}
+  .grade-arrow{display:inline-block;}
+}
+@media (max-width:768px){
+  .content{padding:16px 12px;}
+  .topbar{padding:12px 14px;} .filter-bar{padding:10px 14px;}
+  .kpi .kv{font-size:23px;}
+}
+@media (max-width:640px){
+  .fg{min-width:100px;} .fg select{min-width:100px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media (max-width:600px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .psec-head{flex-direction:column; align-items:flex-start;}
+}
+@media (max-width:420px){
+  .kpi-grid{grid-template-columns:1fr;}
+  .sb-brand-text{font-size:12.5px;}
+}
+@media (min-width:1921px){ .content{max-width:1800px; margin:0 auto;} }
+@media (min-width:2561px){ .content{max-width:2200px; margin:0 auto;} }
+@supports (padding:max(0px)){
+  .sidebar{padding-top:max(18px, env(safe-area-inset-top));}
+  .content{padding-bottom:max(60px, env(safe-area-inset-bottom));}
+}
+button, .sb-item, select{min-height:36px;}
+@media (max-width:900px){ .sb-item{min-height:44px;} .btn-clear{min-height:44px;} }
+</style>
+</head>
+<body>
+<div class="sb-backdrop" id="sbBackdrop"></div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-badge">CI</div>
+      <div class="sb-brand-text">Carrefour Itapevi<span>Dashboard Operacional & RH</span></div>
+    </div>
+
+    <nav class="sb-nav">
+    <div class="sb-sec">Produção</div>
+    <div class="sb-item disabled" title="Sem fonte de dados disponível"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 3 5-8"/></svg><span class="sb-item-txt">Resultado Operacional</span></div>
+    <div class="sb-item disabled" title="Sem fonte de dados disponível"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg><span class="sb-item-txt">Controle de Produtividade</span></div>
+    <div class="sb-item disabled" title="Sem fonte de dados disponível"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span class="sb-item-txt">Produtividade Individual</span></div>
+    <div class="sb-item" id="nav-dimensionamento" data-target="sec-dimensionamento"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="sb-item-txt">Dimensionamento</span></div>
+
+    <div class="sb-sec">Presença &amp; Absenteísmo</div>
+    <div class="sb-item" id="nav-kpi" data-target="sec-kpi"><svg viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg><span class="sb-item-txt">Visão Geral</span></div>
+    <div class="sb-item" id="nav-grade" data-target="sec-grade"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M9 4v16"/></svg><span class="sb-item-txt">Presença Diária do RH</span></div>
+    <div class="sb-item" id="nav-operacional" data-target="sec-operacional"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18"/><path d="M8 14l2.5 2.5L16 11"/></svg><span class="sb-item-txt">Presença Diária Operacional</span></div>
+    <div class="sb-item" id="nav-graficos" data-target="sec-graficos"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 16v-4M12 16V8M16 16v-7"/></svg><span class="sb-item-txt">Gráficos</span></div>
+    <div class="sb-item" id="nav-evolucao" data-target="sec-evolucao"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span class="sb-item-txt">Evolução</span></div>
+    <div class="sb-item" id="nav-presenca" data-target="sec-presenca"><svg viewBox="0 0 24 24"><path d="M16 3v4M8 3v4M3 9h18"/><rect x="3" y="5" width="18" height="16" rx="1"/></svg><span class="sb-item-txt">Movimentações</span></div>
+    <div class="sb-item" id="nav-resumo" data-target="sec-resumo"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="sb-item-txt">Resumo</span></div>
+
+    <div class="sb-sec">Gestão &amp; Custos</div>
+    <div class="sb-item disabled" title="Sem fonte de dados disponível"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span class="sb-item-txt">Radar de Contratos</span></div>
+    <div class="sb-item" id="nav-he" data-target="sec-he"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg><span class="sb-item-txt">Hora Extra</span></div>
+    </nav>
+
+    <button class="sb-toggle" id="sbToggle" type="button"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span class="sb-toggle-txt">Recolher</span></button>
+  </aside>
+
+  <div class="main">
+    <div class="sticky-header">
+      <div class="topbar">
+        <div>
+          <h1>Dashboard Operacional & RH — Carrefour Itapevi</h1>
+          <div class="sub">Presença, dimensionamento e hora extra consolidados</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="badge-periodo" id="badgePeriodo">Agosto/2026</span>
+          <button class="hamburger" id="btnHamb">☰</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="fg"><label>Unidade</label><select class="f-unidade" id="f-uni"></select></div>
+        <div class="fg"><label>Mês</label><select class="f-mes" id="f-mes"></select></div>
+        <div class="fg"><label>Turno</label><select class="f-turno" id="f-turno"></select></div>
+        <div class="fg"><label>Setor</label><select class="f-cargo" id="f-cargo"></select></div>
+        <div class="fg"><label>Cargo</label><select class="f-funcao" id="f-funcao"></select></div>
+        <button class="btn-clear">✕ Limpar</button>
+        <span class="fcount" id="fcount"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===================== DIMENSIONAMENTO ===================== -->
+      <section class="psec" id="sec-dimensionamento">
+        <div class="psec-head"><h2>Dimensionamento · Solicitado vs Realizado</h2><span class="psec-note">Unidade e Setor: barra superior · Mês, Turno e Cargo não se aplicam (dimensionamento é um plano de vagas por Unidade/Setor, sem essa quebra)</span></div>
+        <div class="kpi-grid" id="dim-kpi-row"></div>
+        <div style="height:14px"></div>
+
+        <div class="sub-head">
+          <h3>Detalhe por Setor — Solicitado × Contratado × GAP</h3>
+          <div class="sub-note">Dados: Planilha CONTROLE DE CONTRATAÇÕES · aba DIMENSIONAMENTO GERAL ATUALIZAD · Carrefour Itapevi, referência 11/08/2026</div>
+        </div>
+        <div class="tbl-wrap"><table class="dtbl" id="dim-table"><thead></thead><tbody></tbody></table></div>
+      </section>
+
+      <!-- ===================== VISAO GERAL (KPIs) ===================== -->
+      <section class="psec" id="sec-kpi">
+        <div class="psec-head"><h2>Visão Geral</h2><span class="psec-note" id="kpi-note"></span></div>
+        <div class="kpi-grid" id="kpi-row"></div>
+      </section>
+
+      <!-- ===================== GRADE DIARIA (CONTROLE RH) ===================== -->
+      <section class="psec" id="sec-grade">
+        <div class="psec-head"><h2>Controle de Presença Diária do RH</h2><span class="psec-note">01 a 31/08/2026 — dias 12 a 31 ainda não ocorreram (hoje: 11/08/2026) · registro individual de presenças/faltas por colaborador</span></div>
+        <div class="grade-toolbar">
+          <button class="grade-arrow" id="gArrowL">◀</button>
+          <button class="grade-arrow" id="gArrowR">▶</button>
+        </div>
+        <div class="grade-wrap" id="gradeWrap">
+          <div class="grade-frozen-col" id="gradeFrozenCol"><div id="grade-frozen-holder"></div></div>
+          <div class="grade-scroll-col" id="gradeScrollCol"><div id="grade-scroll-holder"></div></div>
+        </div>
+        <div class="grade-legend" id="grade-legend"></div>
+      </section>
+
+      <!-- ===================== PRESENCA OPERACIONAL (SOLICITADO x REALIZADO) ===================== -->
+      <section class="psec" id="sec-operacional">
+        <div class="psec-head"><h2>Controle de Presença Diária Operacional</h2><span class="psec-note">01 a 31/08/2026 — comparação diária entre dimensionamento solicitado pelo cliente e dimensionamento realizado (efetivamente presente), por cargo</span></div>
+        <div class="grade-toolbar">
+          <button class="grade-arrow" id="oArrowL">◀</button>
+          <button class="grade-arrow" id="oArrowR">▶</button>
+        </div>
+        <div class="grade-wrap" id="operWrap">
+          <div class="grade-frozen-col" id="operFrozenCol"><div id="oper-frozen-holder"></div></div>
+          <div class="grade-scroll-col" id="operScrollCol"><div id="oper-scroll-holder"></div></div>
+        </div>
+        <div class="grade-legend" id="oper-legend"></div>
+      </section>
+
+      <!-- ===================== GRAFICOS ===================== -->
+      <section class="psec" id="sec-graficos">
+        <div class="psec-head"><h2>Gráficos</h2><span class="psec-note">Indicadores de presença — período disponível (01–11/08/2026)</span></div>
+        <div class="charts-grid">
+          <div class="ch"><h3>% Presença por Unidade</h3><canvas id="chPresUnidade"></canvas></div>
+          <div class="ch"><h3>Presenças × Faltas (FJ+FI) por Unidade</h3><canvas id="chPresFaltas"></canvas></div>
+          <div class="ch"><h3>% Presença por Turno</h3><canvas id="chPresTurno"></canvas></div>
+          <div class="ch"><h3>% Presença por Setor</h3><canvas id="chPresSetor"></canvas></div>
+        </div>
+      </section>
+
+      <!-- ===================== EVOLUCAO ===================== -->
+      <section class="psec" id="sec-evolucao">
+        <div class="psec-head"><h2>Evolução</h2><span class="psec-note">Tendência dia a dia — único mês disponível (Agosto/2026)</span></div>
+        <div class="charts-grid" style="margin-bottom:14px;">
+          <div class="ch"><h3>% Presença — Evolução Diária</h3><canvas id="chEvoPct"></canvas></div>
+          <div class="ch"><h3>FJ e FI — Evolução Diária</h3><canvas id="chEvoFaltas"></canvas></div>
+        </div>
+        <div class="tbl-wrap"><table class="dtbl" id="evo-table"><thead></thead><tbody></tbody></table></div>
+      </section>
+
+      <!-- ===================== MOVIMENTACOES ===================== -->
+      <section class="psec" id="sec-presenca">
+        <div class="psec-head"><h2>Movimentações · Admissões e Desligamentos</h2><span class="psec-note" id="mov-note"></span></div>
+        <div class="tbl-wrap"><table class="dtbl" id="mov-table"><thead></thead><tbody></tbody></table></div>
+      </section>
+
+      <!-- ===================== RESUMO ===================== -->
+      <section class="psec" id="sec-resumo">
+        <div class="psec-head"><h2>Resumo</h2><span class="psec-note">Consolidado por turno</span></div>
+        <div class="tbl-wrap"><table class="dtbl" id="resumo-table"><thead></thead><tbody></tbody></table></div>
+      </section>
+
+      <!-- ===================== HORA EXTRA ===================== -->
+      <section class="psec" id="sec-he">
+        <div class="psec-head"><h2>Hora Extra · Diurna &amp; Noturna</h2><span class="psec-note">Unidade, Turno, Setor e Cargo: barra superior</span></div>
+        <div class="kpi-grid" id="he-kpi-row"></div>
+        <div style="height:10px"></div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="nodata-sub" style="text-align:left; font-style:italic;">Observação metodológica: o espelho de ponto de origem só fornece o total de hora extra do período (01–11/08), sem discriminação dia a dia. Por isso este módulo mostra totais agregados por unidade/turno/setor/cargo, mas a Presença Diária do RH não exibe o indicador visual de HE por célula (que exigiria a hora extra quebrada por data).</div>
+        </div>
+
+        <div class="sub-head">
+          <h3>Horas Extras por Unidade — Ordenado por Maior Volume</h3>
+          <div class="sub-note">Dados: Espelhos de Ponto EzPoint · soma diurna (EX) + noturna (EN)</div>
+        </div>
+        <div class="tbl-wrap" style="margin-bottom:26px;"><table class="dtbl" id="he-table"><thead></thead><tbody></tbody></table></div>
+
+        <div class="sub-head">
+          <h3>Detalhamento por Colaborador · Hora Extra a 50% e 100%</h3>
+          <div class="sub-note">Dados: Espelhos de Ponto EzPoint · dia trabalhado no DSR/folga/feriado = 100%, demais dias = 50%</div>
+        </div>
+        <div class="he-toolbar">
+          <div class="fg"><label>Buscar Colaborador</label><input type="text" id="he-search" class="he-search-input" placeholder="Nome do colaborador..." autocomplete="off"></div>
+          <div class="fg"><label>Classificar por</label>
+            <select id="he-sort">
+              <option value="">Nenhuma (mais recente primeiro)</option>
+              <option value="total-desc">Total: Maior → Menor</option>
+              <option value="total-asc">Total: Menor → Maior</option>
+              <option value="ex-desc">HE 50%: Maior → Menor</option>
+              <option value="ex-asc">HE 50%: Menor → Maior</option>
+              <option value="en-desc">HE 100%: Maior → Menor</option>
+              <option value="en-asc">HE 100%: Menor → Maior</option>
+            </select>
+          </div>
+          <span class="fcount" id="he-detail-count"></span>
+        </div>
+        <div class="tbl-wrap" style="margin-bottom:16px;"><table class="dtbl" id="he-detail-table"><thead></thead><tbody></tbody></table></div>
+
+        <div class="sub-head">
+          <h3>Gráficos de Horas Extras · Gestão HE 50% &amp; 100%</h3>
+          <div class="sub-note">Dados: Espelhos de Ponto EzPoint · Unidade, Turno, Setor e Cargo: barra superior · passe o mouse sobre uma barra para ver a média por colaborador</div>
+        </div>
+
+        <div class="chart-group-label">Visão Geral</div>
+        <div class="charts-grid" style="margin-bottom:14px;">
+          <div class="ch ch-donut"><h3>Composição HE 50% × HE 100%</h3><canvas id="chHeDonut"></canvas></div>
+          <div class="ch"><h3>Evolução de Horas Extras</h3><canvas id="chHeEvo"></canvas></div>
+        </div>
+
+        <div class="chart-group-label">Por Unidade &amp; Turno</div>
+        <div class="charts-grid" style="margin-bottom:14px;">
+          <div class="ch ch-hbar"><h3>Horas Extras por Unidade</h3><canvas id="chHeUnidade"></canvas></div>
+          <div class="ch ch-hbar"><h3>Horas Extras por Turno</h3><canvas id="chHeTurno"></canvas></div>
+        </div>
+
+        <div class="chart-group-label">Por Setor</div>
+        <div class="charts-grid" style="margin-bottom:14px;">
+          <div class="ch ch-hbar"><h3>Horas Extras por Setor</h3><canvas id="chHeSetor"></canvas></div>
+        </div>
+
+        <div class="chart-group-label">Por Cargo</div>
+        <div class="charts-grid">
+          <div class="ch ch-hbar"><h3>Horas Extras por Cargo</h3><canvas id="chHeCargo"></canvas></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+<script>
+
+const UNIDS = ["Carrefour Itapevi"];
+const MESES = ["Agosto"];
+const MES_NUM = {"Janeiro":1,"Fevereiro":2,"Março":3,"Abril":4,"Maio":5,"Junho":6,"Julho":7,"Agosto":8,"Setembro":9,"Outubro":10,"Novembro":11,"Dezembro":12};
+const TURNOS = ["1º Turno", "2º Turno", "3º Turno", "Turno Administrativo"];
+const CARGOS = ["CAIXARIA", "COBRANÇA", "FRIOS", "FRIOS - CRFLOG", "HIGIENIZAÇÃO", "SAMS", "SAMS - CRFLOG", "SECO"];
+const FUNCOES = ["ASSISTENTE ADMINISTRATIVO", "AUXILIAR OPERACIONAL", "LÍDER OPERACIONAL", "OPERADOR DE EMPILHADEIRA"];
+const DADOS = [{"unidade":"Carrefour Itapevi","turno":"2º Turno","colaboradores":[{"nome":"ADENILSON DONIZETE MARAN FERREIRA CERQUEIRA","matricula":"25940","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-11":"P"}},{"nome":"ALEX SOARES DE ARAUJO","matricula":"26964","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"BERNARDO DO NASCIMENTO COSTA","matricula":"29059","cargo":"SAMS","funcao":"OPERADOR DE EMPILHADEIRA","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"BRUNO FABRICIO GAIA SARAIVA","matricula":"27993","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"BRUNO GOMES DO NASCIMENTO PINTO","matricula":"26965","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"FI","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FI","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"CESAR AUGUSTO ROCHA CRUZ","matricula":"27503","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"FI","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"CLAUDIO DOS SANTOS LUCAS","matricula":"28946","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"FJ","2026-08-05":"FJ","2026-08-06":"FJ","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"CLEBERSON APARECIDO RAMOS DA SILVA","matricula":"24176","cargo":"CAIXARIA","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FJ","2026-08-02":"FOLGA","2026-08-03":"FJ","2026-08-04":"FJ","2026-08-05":"FJ","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"CRISTIANO DE ARAUJO GENARI","matricula":"28631","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"FI","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"DANIEL ANDRADE RIBEIRO","matricula":"29075","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"DAVIS ELIS LIMA","matricula":"25132","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"FI","2026-08-04":"P","2026-08-05":"FI","2026-08-06":"FI","2026-08-07":"FI","2026-08-08":"FI","2026-08-09":"FOLGA"}},{"nome":"EDSON DA SILVA FRANCA","matricula":"28712","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"ELIACKSON LUKA VIEIRA DA SILVA","matricula":"26463","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"ERIC ANDERSON PEREIRA LOPES","matricula":"27699","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FJ","2026-08-02":"FOLGA","2026-08-03":"FJ","2026-08-04":"FJ","2026-08-05":"FJ","2026-08-06":"FJ","2026-08-09":"FOLGA"}},{"nome":"ERICK BRITO DE TOLEDO","matricula":"29222","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"EVANDRO APARECIDO SILVA DE OLIVEIRA","matricula":"28544","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"FABIANO DELFINO LOPES","matricula":"28869","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"FELIPE APARECIDO DE SOUZA","matricula":"28742","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"GABRIEL MATIAS DE SOUSA","matricula":"28865","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"GILMAR SILVA DE OLIVEIRA","matricula":"24560","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"GILMAYRON BATISTA COSTA","matricula":"28714","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"HENRIQUE MELO DO NASCIMENTO","matricula":"21453","cargo":"FRIOS","funcao":"OPERADOR DE EMPILHADEIRA","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"IVANILDO DE SOUSA LEAL","matricula":"28871","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"JANDERSON FERREIRA SANTOS SILVA","matricula":"28498","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"JEFFERSON RODRIGO DA ROCHA SILVA","matricula":"28816","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"JOAO PEDRO FERERICO DAMACENA","matricula":"24292","cargo":"FRIOS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"JOCIMAR DE JESUS SANTOS","matricula":"28636","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"LENILSON TEIXEIRA LOPES","matricula":"29301","cargo":"FRIOS","funcao":"OPERADOR DE EMPILHADEIRA","dias":{}},{"nome":"LEONARDO APARECIDO BARBOSA","matricula":"29087","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"MANOEL BISPO DOS SANTOS","matricula":"20385","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"MARCELO LUCAS DA SILVA","matricula":"28685","cargo":"SECO","funcao":"LÍDER OPERACIONAL","dias":{}},{"nome":"MAYCON SILVA COSTA","matricula":"29252","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"MILTON OLIVEIRA DE SOUSA","matricula":"28862","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"NEMIAS BATISTA DIS SANTOS","matricula":"24270","cargo":"HIGIENIZAÇÃO","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"PABLO SOUZA ELIAS","matricula":"29321","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-11":"P"}},{"nome":"RAFAEL DO NASCIMENTO","matricula":"28778","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"RAIDOUGLAS DE MATOS BORGES","matricula":"26024","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RENATO APARECIDO DE OLIVEIRA","matricula":"28624","cargo":"SAMS","funcao":"OPERADOR DE EMPILHADEIRA","dias":{}},{"nome":"RODRIGO ALVES DA SILVA","matricula":"27386","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"SILVIO MARCELINO DE SOUZA","matricula":"29147","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-10":"P","2026-08-11":"P"}},{"nome":"TADEU HENRIQUE DA SILVA","matricula":"26781","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-10":"P","2026-08-11":"P"}},{"nome":"VICTOR BRUNO SOUSA DOS ANJOS","matricula":"27388","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-10":"P","2026-08-11":"P"}},{"nome":"VICTOR GUIMARAES RODRIGUES DE CARVALHO","matricula":"26806","cargo":"COBRANÇA","funcao":"ASSISTENTE ADMINISTRATIVO","dias":{}},{"nome":"YAGO RAFAEL DE JESUS SILVA","matricula":"28543","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-10":"P","2026-08-11":"P"}}]},{"unidade":"Carrefour Itapevi","turno":"1º Turno","colaboradores":[{"nome":"ALEXANDRE GOMES DOS SANTOS","matricula":"29318","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FI","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"FJ","2026-08-05":"P","2026-08-06":"P","2026-08-07":"FI","2026-08-08":"FI","2026-08-09":"FOLGA"}},{"nome":"ANA PAULA DA SILVA MENEZES","matricula":"29148","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FI","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"ANDRE VICENTE DE OLIVEIRA","matricula":"25095","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"BARBARA RAYANE TELES DOS SANTOS","matricula":"29273","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"BRUNO VARELO","matricula":"26573","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"CLAUDIO GUSTAVO BERNARDES OLIVEIRA","matricula":"29022","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FI","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"CLEITON DA CONCEICAO FERNANDES FERREIRA","matricula":"28992","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"DANILLO MUNIZ PEREIRA ANDRADE","matricula":"28407","cargo":"COBRANÇA","funcao":"ASSISTENTE ADMINISTRATIVO","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"DAVID BRYAN SILVA RODRIGUES","matricula":"27698","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FI","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"DEYVID PEREIRA NOGUEIRA DE CASTRO","matricula":"29118","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FI","2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"FI","2026-08-06":"FI","2026-08-07":"FI","2026-08-08":"FI","2026-08-09":"FOLGA"}},{"nome":"EDNALDO OLIVEIRA DA PAIXAO","matricula":"29067","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-04":"D","2026-08-05":"D","2026-08-06":"D","2026-08-07":"D","2026-08-08":"D","2026-08-09":"D","2026-08-10":"D","2026-08-11":"D"}},{"nome":"EDUARDO PHELIPE RIBEIRO SILVA","matricula":"28532","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"ERIK FELIPE LIMA RODRIGUES","matricula":"27378","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"EZEQUIEL DE OLIVEIRA RODRIGUES","matricula":"29150","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"FAGNER ROBERTO SAMPAIO JUNIOR","matricula":"28535","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"FELIPE SOARES DO ANJOS","matricula":"28534","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-11":"P"}},{"nome":"GABRIEL BARRETO","matricula":"20240","cargo":"FRIOS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"GEOVANNA EVELYN RODRIGUES DE SOUZA","matricula":"28993","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-03":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"GRAZIELE VILELA DE SOUZA","matricula":"29298","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FJ","2026-08-02":"FOLGA","2026-08-03":"FJ","2026-08-04":"FJ","2026-08-05":"FJ","2026-08-09":"FOLGA"}},{"nome":"GUSTAVO HENRIQUE PEREIRA CESARIO","matricula":"27990","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FI","2026-08-02":"FOLGA","2026-08-03":"FI","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"HAGDA NAYANE DE SOUZA","matricula":"28900","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-11":"P"}},{"nome":"HIGOR FELIPE PINTO","matricula":"24297","cargo":"HIGIENIZAÇÃO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"HILLARY VITORIA MONTEIRO FERNANDES","matricula":"29205","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA"}},{"nome":"IAGO CAIQUE FERREIRA NASCIMENTO","matricula":"29319","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-09":"FOLGA"}},{"nome":"IGOR NASCIMENTO OLIVEIRA","matricula":"29069","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"FJ","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"JHONATAN FERNANDES VALE","matricula":"28741","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"JOSE OLIVEIRA SANTOS FIUZA","matricula":"20274","cargo":"FRIOS","funcao":"LÍDER OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"JULIANO ALBANO DE PAULA","matricula":"29250","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"JULIO ALEXANDRE GONCALVES FIGUEIREDO","matricula":"28661","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"KAIO CANDIDO MACIEL","matricula":"24191","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"KAROLINE DE SOUZA TORRES ROQUE","matricula":"29060","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"KAUAN BARRETO SALGADO","matricula":"29347","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"KEVIN BARBOSA DE LIMA","matricula":"29207","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"LUCAS MENDES DE OLIVEIRA","matricula":"28447","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P"}},{"nome":"LUIS CORREIA","matricula":"20227","cargo":"FRIOS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"MARCELO DA SILVA","matricula":"25339","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"MARCOS ESTEVAO DA SILVA","matricula":"26469","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"MARCOS VINICIUS MORAES DOS SANTOS","matricula":"27791","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-06":"P","2026-08-09":"FOLGA"}},{"nome":"MICHEL ROGERIO SILVA VALENTIM","matricula":"28639","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"MILENA MARINHO DA SILVA","matricula":"29116","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"MURILLO GUSTAVO CAVALCANTE DA SILVA","matricula":"28996","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"NICOLLY REIS DA CUNHA","matricula":"29348","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"NILSON MACARIO DO NASCIMENTO","matricula":"28533","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RAFAEL LAUTON DA SILVA","matricula":"26665","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RAFAEL TRIFANOFF FERREIRA","matricula":"28208","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-11":"P"}},{"nome":"RICHARD OLIVEIRA BRUM","matricula":"29157","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"ROBERT PEREIRA DOS SANTOS","matricula":"26026","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"ROBERTO TEIXEIRA DE OLIVEIRA","matricula":"24296","cargo":"FRIOS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"FOLGA","2026-08-11":"P"}},{"nome":"ROBSON CHAVES SEVERIANO","matricula":"24562","cargo":"CAIXARIA","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RODRIGO EVERTON MOREIRA RODRIGUES","matricula":"28586","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-09":"FOLGA"}},{"nome":"ROGER SOARES FELICIDADE","matricula":"28531","cargo":"FRIOS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RONALDO MEDEIROS","matricula":"28528","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RONNYEL CAVALCANTE LIMA","matricula":"24570","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"RYAN GALILEU CARVALHO DA SILVA","matricula":"26471","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"SAMUEL FRANCISCO DOS SANTOS","matricula":"27980","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-10":"P","2026-08-11":"P"}},{"nome":"SILVIA RAQUEL GONCALVES DE ARAUJO SILVA","matricula":"29051","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-10":"P","2026-08-11":"P"}},{"nome":"VALTER RIBEIRO DE SOUZA","matricula":"28500","cargo":"HIGIENIZAÇÃO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P"}},{"nome":"VICTOR HUGO DA SILVA MARTINS","matricula":"27988","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-10":"P","2026-08-11":"P"}},{"nome":"VINICIUS DE OLIVEIRA EGYDIO","matricula":"26689","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-11":"P"}},{"nome":"VITOR HUGO LISBOA DURVAL","matricula":"28658","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P"}},{"nome":"WESLEY RAMOS MIRANDA","matricula":"29117","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-06":"P","2026-08-08":"P","2026-08-10":"P","2026-08-11":"P"}}]},{"unidade":"Carrefour Itapevi","turno":"3º Turno","colaboradores":[{"nome":"ANDRE LUIZ BATISTA DA SILVA","matricula":"29058","cargo":"SAMS","funcao":"OPERADOR DE EMPILHADEIRA","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"CARLOS HENRIQUE DE OLIVEIRA PINTO","matricula":"28709","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"EDUARDO SANTOS GOMES DE SOUZA","matricula":"26016","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-08":"FOLGA","2026-08-10":"P"}},{"nome":"EDVAN CARDOSO GOIS","matricula":"28864","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA"}},{"nome":"ELSON FEITOSA DAMASCENO","matricula":"22600","cargo":"SECO","funcao":"LÍDER OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"EVERTON DA COSTA OLIVEIRA","matricula":"24430","cargo":"COBRANÇA","funcao":"ASSISTENTE ADMINISTRATIVO","dias":{}},{"nome":"FABIO ALEFF DA SILVA","matricula":"20230","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"FAUZE CARLOS DE OLIVEIRA","matricula":"28866","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-05":"P","2026-08-06":"P","2026-08-08":"FOLGA"}},{"nome":"FRANCISCO DE ASSIS MENEZES SOARES","matricula":"24166","cargo":"HIGIENIZAÇÃO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"GABRIEL PAVAN SANTOS","matricula":"24991","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"GEFERSON WILLAM ANDRADE","matricula":"20224","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"HENRIQUE SANTOS GOMES DE SOUZA","matricula":"27381","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"IDELCINO DE JESUS","matricula":"20085","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"IRMAR DE PAULA SILVA","matricula":"20286","cargo":"FRIOS","funcao":"LÍDER OPERACIONAL","dias":{}},{"nome":"JOSE DOS SANTOS","matricula":"29048","cargo":"SAMS","funcao":"OPERADOR DE EMPILHADEIRA","dias":{}},{"nome":"JOSIVAN DOS SANTOS","matricula":"28637","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"LEANDERSON APARECIDO TEIXEIRA FARIAS","matricula":"28775","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"LEONARDO VINICIUS BARBOSA DA SILVA","matricula":"29387","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"LEONARDO VINICIUS CLEMENTE SANTOS","matricula":"28994","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"LUCAS ALVES DO NASCIMENTO","matricula":"26143","cargo":"FRIOS","funcao":"LÍDER OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"LUCAS ROCHA DA SILVA","matricula":"26773","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"MATHEUS BEZERRA PEDRO","matricula":"28912","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"MICAEL KELVIN DOS SANTOS ALVES","matricula":"28995","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"RAFAEL DA SILVA AMARO","matricula":"28446","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P"}},{"nome":"RENAN SODRE DO NASCIMENTO","matricula":"28800","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"RODRIGO MOISES DE SOUZA","matricula":"24172","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"ROGERIO APARECIDO DE ARRUDA ALVES","matricula":"22887","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"FOLGA","2026-08-09":"P","2026-08-10":"P"}},{"nome":"SHEILA OLIVEIRA SILVEIRA","matricula":"28745","cargo":"COBRANÇA","funcao":"ASSISTENTE ADMINISTRATIVO","dias":{}},{"nome":"VINICIUS DA SILVA REIS","matricula":"28642","cargo":"SAMS - CRFLOG","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P"}},{"nome":"WELLINGTON PEREIRA ALVES","matricula":"28389","cargo":"SECO","funcao":"AUXILIAR OPERACIONAL","dias":{}},{"nome":"WILLIAM DOS SANTOS","matricula":"24169","cargo":"FRIOS","funcao":"AUXILIAR OPERACIONAL","dias":{"2026-08-01":"FOLGA","2026-08-02":"P","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-09":"P","2026-08-10":"P"}}]},{"unidade":"Carrefour Itapevi","turno":"Turno Administrativo","colaboradores":[{"nome":"IZABELLY CRISTINA DOS SANTOS","matricula":"22706","cargo":"SAMS - CRFLOG","funcao":"ASSISTENTE ADMINISTRATIVO","dias":{"2026-08-01":"P","2026-08-02":"FOLGA","2026-08-03":"P","2026-08-04":"P","2026-08-05":"P","2026-08-06":"P","2026-08-07":"P","2026-08-08":"P","2026-08-09":"FOLGA","2026-08-11":"P"}}]}];
+const DIM_DADOS = [{"unidade": "Carrefour Itapevi", "cargo": "FRIOS - AUXILIAR OPERACIONAL", "solicitado": 78, "contratado": 63}, {"unidade": "Carrefour Itapevi", "cargo": "FRIOS - LÍDER OPERACIONAL", "solicitado": 3, "contratado": 3}, {"unidade": "Carrefour Itapevi", "cargo": "FRIOS - OPERADOR DE EMPILHADEIRA", "solicitado": 2, "contratado": 2}, {"unidade": "Carrefour Itapevi", "cargo": "FRIOS - CRFLOG - AUXILIAR OPERACIONAL", "solicitado": 26, "contratado": 5}, {"unidade": "Carrefour Itapevi", "cargo": "SECO - AUXILIAR OPERACIONAL", "solicitado": 38, "contratado": 33}, {"unidade": "Carrefour Itapevi", "cargo": "SECO - LÍDER OPERACIONAL", "solicitado": 2, "contratado": 2}, {"unidade": "Carrefour Itapevi", "cargo": "SECO - OPERADOR DE EMPILHADEIRA", "solicitado": 0, "contratado": 0}, {"unidade": "Carrefour Itapevi", "cargo": "HIGIENIZAÇÃO - AUXILIAR OPERACIONAL", "solicitado": 4, "contratado": 4}, {"unidade": "Carrefour Itapevi", "cargo": "CAIXARIA - AUXILIAR OPERACIONAL", "solicitado": 2, "contratado": 2}, {"unidade": "Carrefour Itapevi", "cargo": "SAMS - CRFLOG - AUXILIAR OPERACIONAL", "solicitado": 14, "contratado": 14}, {"unidade": "Carrefour Itapevi", "cargo": "SAMS - LÍDER OPERACIONAL", "solicitado": 0, "contratado": 0}, {"unidade": "Carrefour Itapevi", "cargo": "SAMS - OPERADOR DE EMPILHADEIRA", "solicitado": 4, "contratado": 4}, {"unidade": "Carrefour Itapevi", "cargo": "COBRANÇA - ASSISTENTE ADMINISTRATIVO", "solicitado": 4, "contratado": 4}, {"unidade": "Carrefour Itapevi", "cargo": "SAMS - ASSISTENTE ADMINISTRATIVO", "solicitado": 0, "contratado": 0}];
+const PRESENCA_DADOS = [{"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "ANDERSON DA CONCEICAO GONCALVES", "data": "2026-08-05"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "ANDERSON MATHEUS DE PAULA", "data": "2026-08-06"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "ARIEL CORREIA DOS SANTOS", "data": "2026-08-06"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "CAUE JOSE DO PATROCINIO", "data": "2026-08-02"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "DANIEL HOLANDA DE MELO", "data": "2026-08-03"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "EVERTON CORREIA ANDRADE", "data": "2026-08-07"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "FELIPE RODRIGUES DA SILVA", "data": "2026-08-04"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "FERNANDO FERNANDES MACHADO", "data": "2026-08-04"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "GABRYEL DE SOUZA VICENTE", "data": "2026-08-07"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "JOAO VITOR DE FARIAS DA COSTA", "data": "2026-08-05"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "JOSE AUGUSTO SIMOES BAPTISTA FILHO", "data": "2026-08-04"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "LARYSSA EWELLYN KEISE RIBA ALVES DOS SANTOS", "data": "2026-08-05"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "MIKE LEME DO NASCIMENTO", "data": "2026-08-09"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "RAISSA LUZ DA SILVA", "data": "2026-08-05"}, {"unidade": "Carrefour Itapevi", "tipo": "Desligamento", "colaborador": "RIAN RODRIGUES CESARIO", "data": "2026-08-04"}];
+const HE_AGG = [{"matricula": "26964", "nome": "ALEX SOARES DE ARAUJO", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 0.52, "en": 0.0}, {"matricula": "29058", "nome": "ANDRE LUIZ BATISTA DA SILVA ", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SAMS", "ex": 2.43, "en": 0.42}, {"matricula": "25095", "nome": "ANDRE VICENTE DE OLIVEIRA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SAMS - CRFLOG", "ex": 0.62, "en": 0.0}, {"matricula": "29273", "nome": "BARBARA RAYANE TELES DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 3.82, "en": 0.0}, {"matricula": "29059", "nome": "BERNARDO DO NASCIMENTO COSTA ", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SAMS", "ex": 1.1, "en": 0.0}, {"matricula": "27993", "nome": "BRUNO FABRICIO GAIA SARAIVA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 3.5, "en": 0.0}, {"matricula": "26965", "nome": "BRUNO GOMES DO NASCIMENTO PINTO", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 0.8, "en": 0.0}, {"matricula": "28709", "nome": "CARLOS HENRIQUE DE OLIVEIRA PINTO", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 2.55, "en": 0.0}, {"matricula": "27503", "nome": "CESAR AUGUSTO ROCHA CRUZ", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 2.27, "en": 0.0}, {"matricula": "28946", "nome": "CLAUDIO DOS SANTOS LUCAS", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 1.1, "en": 0.0}, {"matricula": "29022", "nome": "CLAUDIO GUSTAVO BERNARDES OLIVEIRA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.57, "en": 0.0}, {"matricula": "24176", "nome": "CLEBERSON APARECIDO RAMOS DA SILVA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "CAIXARIA", "ex": 0.12, "en": 0.0}, {"matricula": "28631", "nome": "CRISTIANO DE ARAUJO GENARI", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SAMS - CRFLOG", "ex": 0.67, "en": 0.0}, {"matricula": "27698", "nome": "DAVID BRYAN SILVA RODRIGUES", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.2, "en": 0.0}, {"matricula": "28712", "nome": "EDSON DA SILVA FRANCA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 0.78, "en": 0.0}, {"matricula": "28532", "nome": "EDUARDO PHELIPE RIBEIRO SILVA ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SAMS - CRFLOG", "ex": 1.08, "en": 0.0}, {"matricula": "26016", "nome": "EDUARDO SANTOS GOMES DE SOUZA", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 0.72, "en": 0.35}, {"matricula": "26463", "nome": "ELIACKSON LUKA VIEIRA DA SILVA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 1.7, "en": 0.0}, {"matricula": "29222", "nome": "ERICK BRITO DE TOLEDO", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 0.43, "en": 0.0}, {"matricula": "28544", "nome": "EVANDRO APARECIDO SILVA DE OLIVEIRA ", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 2.02, "en": 0.0}, {"matricula": "28869", "nome": "FABIANO DELFINO LOPES", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 1.15, "en": 0.0}, {"matricula": "20230", "nome": "FABIO ALEFF DA SILVA", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 1.18, "en": 1.15}, {"matricula": "28535", "nome": "FAGNER ROBERTO SAMPAIO JUNIOR ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.13, "en": 0.0}, {"matricula": "28866", "nome": "FAUZE CARLOS DE OLIVEIRA", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 1.83, "en": 0.0}, {"matricula": "28742", "nome": "FELIPE APARECIDO DE SOUZA ", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SAMS - CRFLOG", "ex": 0.9, "en": 0.0}, {"matricula": "28534", "nome": "FELIPE SOARES DO ANJOS ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.67, "en": 0.0}, {"matricula": "20240", "nome": "GABRIEL BARRETO", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS - CRFLOG", "ex": 2.08, "en": 0.0}, {"matricula": "28865", "nome": "GABRIEL MATIAS DE SOUSA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 1.25, "en": 0.0}, {"matricula": "24991", "nome": "GABRIEL PAVAN SANTOS", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 1.92, "en": 0.95}, {"matricula": "20224", "nome": "GEFERSON WILLAM ANDRADE", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 1.93, "en": 1.15}, {"matricula": "28993", "nome": "GEOVANNA EVELYN RODRIGUES DE SOUZA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.15, "en": 0.0}, {"matricula": "27990", "nome": "GUSTAVO HENRIQUE PEREIRA CESARIO", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SAMS - CRFLOG", "ex": 0.25, "en": 0.0}, {"matricula": "28900", "nome": "HAGDA NAYANE DE SOUZA ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SECO", "ex": 0.9, "en": 0.0}, {"matricula": "21453", "nome": "HENRIQUE MELO DO NASCIMENTO", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 0.6, "en": 0.0}, {"matricula": "27381", "nome": "HENRIQUE SANTOS GOMES DE SOUZA ", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 2.88, "en": 1.15}, {"matricula": "24297", "nome": "HIGOR FELIPE PINTO", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "HIGIENIZAÇÃO", "ex": 0.83, "en": 0.0}, {"matricula": "20085", "nome": "IDELCINO DE JESUS", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 0.57, "en": 0.0}, {"matricula": "29069", "nome": "IGOR NASCIMENTO OLIVEIRA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.93, "en": 0.0}, {"matricula": "28871", "nome": "IVANILDO DE SOUSA LEAL", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 2.13, "en": 0.0}, {"matricula": "22706", "nome": "IZABELLY CRISTINA DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "Turno Administrativo", "cargo": "SAMS - CRFLOG", "ex": 3.83, "en": 0.0}, {"matricula": "28636", "nome": "JOCIMAR DE JESUS SANTOS", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SAMS - CRFLOG", "ex": 0.72, "en": 0.13}, {"matricula": "20274", "nome": "JOSE OLIVEIRA SANTOS FIUZA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 5.2, "en": 0.0}, {"matricula": "28637", "nome": "JOSIVAN DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 1.82, "en": 0.0}, {"matricula": "24191", "nome": "KAIO CANDIDO MACIEL", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.3, "en": 0.0}, {"matricula": "28775", "nome": "LEANDERSON APARECIDO TEIXEIRA FARIAS", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 2.25, "en": 0.0}, {"matricula": "29087", "nome": "LEONARDO APARECIDO BARBOSA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 16.47, "en": 0.38}, {"matricula": "29387", "nome": "LEONARDO VINICIUS BARBOSA DA SILVA", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 0.42, "en": 1.12}, {"matricula": "26143", "nome": "LUCAS ALVES DO NASCIMENTO", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 4.08, "en": 1.15}, {"matricula": "26773", "nome": "LUCAS ROCHA DA SILVA", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 0.5, "en": 0.0}, {"matricula": "20227", "nome": "LUIS CORREIA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS - CRFLOG", "ex": 2.55, "en": 0.0}, {"matricula": "25339", "nome": "MARCELO DA SILVA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SECO", "ex": 0.12, "en": 0.0}, {"matricula": "26469", "nome": "MARCOS ESTEVAO DA SILVA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SECO", "ex": 1.8, "en": 0.0}, {"matricula": "27791", "nome": "MARCOS VINICIUS MORAES DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.12, "en": 0.0}, {"matricula": "29116", "nome": "MILENA MARINHO DA SILVA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 1.68, "en": 0.0}, {"matricula": "28862", "nome": "MILTON OLIVEIRA DE SOUSA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 1.37, "en": 0.0}, {"matricula": "24270", "nome": "NEMIAS BATISTA DIS SANTOS", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "HIGIENIZAÇÃO", "ex": 1.05, "en": 0.0}, {"matricula": "28533", "nome": "NILSON MACARIO DO NASCIMENTO ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 1.67, "en": 0.0}, {"matricula": "29321", "nome": "PABLO SOUZA ELIAS", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 1.67, "en": 0.0}, {"matricula": "26665", "nome": "RAFAEL LAUTON DA SILVA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SECO", "ex": 1.08, "en": 0.0}, {"matricula": "26024", "nome": "RAIDOUGLAS DE MATOS BORGES", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 2.77, "en": 0.0}, {"matricula": "28800", "nome": "RENAN SODRE DO NASCIMENTO", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 0.5, "en": 0.22}, {"matricula": "26026", "nome": "ROBERT PEREIRA DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 3.7, "en": 0.0}, {"matricula": "24296", "nome": "ROBERTO TEIXEIRA DE OLIVEIRA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS - CRFLOG", "ex": 2.33, "en": 0.0}, {"matricula": "24562", "nome": "ROBSON CHAVES SEVERIANO", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "CAIXARIA", "ex": 7.38, "en": 0.0}, {"matricula": "24172", "nome": "RODRIGO MOISES DE SOUZA", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 1.17, "en": 0.0}, {"matricula": "28531", "nome": "ROGER SOARES FELICIDADE ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS - CRFLOG", "ex": 2.62, "en": 0.0}, {"matricula": "22887", "nome": "ROGERIO APARECIDO DE ARRUDA ALVES", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "SECO", "ex": 0.58, "en": 0.0}, {"matricula": "28528", "nome": "RONALDO MEDEIROS ", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.35, "en": 0.0}, {"matricula": "24570", "nome": "RONNYEL CAVALCANTE LIMA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.37, "en": 0.0}, {"matricula": "26471", "nome": "RYAN GALILEU CARVALHO DA SILVA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SECO", "ex": 0.3, "en": 0.0}, {"matricula": "27980", "nome": "SAMUEL FRANCISCO DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SECO", "ex": 0.37, "en": 0.0}, {"matricula": "29051", "nome": "SILVIA RAQUEL GONCALVES DE ARAUJO SILVA", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "FRIOS", "ex": 0.17, "en": 0.0}, {"matricula": "29147", "nome": "SILVIO MARCELINO DE SOUZA", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "FRIOS", "ex": 3.27, "en": 0.0}, {"matricula": "27388", "nome": "VICTOR BRUNO SOUSA DOS ANJOS", "unidade": "Carrefour Itapevi", "turno": "2º Turno", "cargo": "SECO", "ex": 1.78, "en": 0.0}, {"matricula": "26689", "nome": "VINICIUS DE OLIVEIRA EGYDIO", "unidade": "Carrefour Itapevi", "turno": "1º Turno", "cargo": "SAMS - CRFLOG", "ex": 0.43, "en": 0.0}, {"matricula": "24169", "nome": "WILLIAM DOS SANTOS", "unidade": "Carrefour Itapevi", "turno": "3º Turno", "cargo": "FRIOS", "ex": 3.57, "en": 3.45}];
+const OPER_DADOS = [{"turno":"2º Turno","unidade":"Carrefour Itapevi","dias":["2026-08-01","2026-08-02","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31"],"grupos":[{"setor":"CAIXARIA","cargo":"AUXILIAR OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"COBRANÇA","cargo":"ASSISTENTE ADMINISTRATIVO","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"AUXILIAR OPERACIONAL","solicitado":35,"realizado":{"2026-08-01":16,"2026-08-02":0,"2026-08-03":15,"2026-08-04":17,"2026-08-05":15,"2026-08-06":16,"2026-08-07":16,"2026-08-08":15,"2026-08-09":0,"2026-08-10":12,"2026-08-11":11,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"LÍDER OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"OPERADOR DE EMPILHADEIRA","solicitado":2,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS - CRFLOG","cargo":"AUXILIAR OPERACIONAL","solicitado":11,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"HIGIENIZAÇÃO","cargo":"AUXILIAR OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SAMS","cargo":"OPERADOR DE EMPILHADEIRA","solicitado":2,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SAMS - CRFLOG","cargo":"AUXILIAR OPERACIONAL","solicitado":5,"realizado":{"2026-08-01":4,"2026-08-02":1,"2026-08-03":5,"2026-08-04":5,"2026-08-05":5,"2026-08-06":5,"2026-08-07":3,"2026-08-08":3,"2026-08-09":1,"2026-08-10":4,"2026-08-11":4,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SECO","cargo":"AUXILIAR OPERACIONAL","solicitado":14,"realizado":{"2026-08-01":7,"2026-08-02":1,"2026-08-03":8,"2026-08-04":10,"2026-08-05":10,"2026-08-06":10,"2026-08-07":9,"2026-08-08":7,"2026-08-09":1,"2026-08-10":7,"2026-08-11":6,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SECO","cargo":"LÍDER OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}}]},{"turno":"1º Turno","unidade":"Carrefour Itapevi","dias":["2026-08-01","2026-08-02","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31"],"grupos":[{"setor":"CAIXARIA","cargo":"AUXILIAR OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"COBRANÇA","cargo":"ASSISTENTE ADMINISTRATIVO","solicitado":1,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"AUXILIAR OPERACIONAL","solicitado":26,"realizado":{"2026-08-01":25,"2026-08-02":0,"2026-08-03":27,"2026-08-04":27,"2026-08-05":25,"2026-08-06":28,"2026-08-07":23,"2026-08-08":20,"2026-08-09":0,"2026-08-10":20,"2026-08-11":18,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"LÍDER OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS - CRFLOG","cargo":"AUXILIAR OPERACIONAL","solicitado":11,"realizado":{"2026-08-01":4,"2026-08-02":0,"2026-08-03":4,"2026-08-04":4,"2026-08-05":4,"2026-08-06":4,"2026-08-07":3,"2026-08-08":3,"2026-08-09":0,"2026-08-10":3,"2026-08-11":4,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"HIGIENIZAÇÃO","cargo":"AUXILIAR OPERACIONAL","solicitado":2,"realizado":{"2026-08-01":2,"2026-08-02":0,"2026-08-03":2,"2026-08-04":2,"2026-08-05":2,"2026-08-06":2,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":1,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SAMS - CRFLOG","cargo":"AUXILIAR OPERACIONAL","solicitado":7,"realizado":{"2026-08-01":5,"2026-08-02":0,"2026-08-03":4,"2026-08-04":7,"2026-08-05":7,"2026-08-06":7,"2026-08-07":7,"2026-08-08":7,"2026-08-09":0,"2026-08-10":6,"2026-08-11":6,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SECO","cargo":"AUXILIAR OPERACIONAL","solicitado":12,"realizado":{"2026-08-01":7,"2026-08-02":0,"2026-08-03":8,"2026-08-04":6,"2026-08-05":7,"2026-08-06":6,"2026-08-07":6,"2026-08-08":5,"2026-08-09":0,"2026-08-10":5,"2026-08-11":6,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}}]},{"turno":"3º Turno","unidade":"Carrefour Itapevi","dias":["2026-08-01","2026-08-02","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31"],"grupos":[{"setor":"COBRANÇA","cargo":"ASSISTENTE ADMINISTRATIVO","solicitado":2,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"AUXILIAR OPERACIONAL","solicitado":17,"realizado":{"2026-08-01":0,"2026-08-02":9,"2026-08-03":9,"2026-08-04":8,"2026-08-05":9,"2026-08-06":9,"2026-08-07":8,"2026-08-08":0,"2026-08-09":7,"2026-08-10":5,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS","cargo":"LÍDER OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":1,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":0,"2026-08-09":1,"2026-08-10":1,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"FRIOS - CRFLOG","cargo":"AUXILIAR OPERACIONAL","solicitado":4,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"HIGIENIZAÇÃO","cargo":"AUXILIAR OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":1,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":0,"2026-08-09":1,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SAMS","cargo":"OPERADOR DE EMPILHADEIRA","solicitado":2,"realizado":{"2026-08-01":0,"2026-08-02":1,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":0,"2026-08-09":1,"2026-08-10":1,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SAMS - CRFLOG","cargo":"AUXILIAR OPERACIONAL","solicitado":2,"realizado":{"2026-08-01":0,"2026-08-02":2,"2026-08-03":2,"2026-08-04":2,"2026-08-05":2,"2026-08-06":2,"2026-08-07":1,"2026-08-08":0,"2026-08-09":1,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SECO","cargo":"AUXILIAR OPERACIONAL","solicitado":12,"realizado":{"2026-08-01":0,"2026-08-02":9,"2026-08-03":10,"2026-08-04":10,"2026-08-05":9,"2026-08-06":7,"2026-08-07":7,"2026-08-08":0,"2026-08-09":9,"2026-08-10":10,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SECO","cargo":"LÍDER OPERACIONAL","solicitado":0,"realizado":{"2026-08-01":0,"2026-08-02":1,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":0,"2026-08-09":1,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}}]},{"turno":"Turno Administrativo","unidade":"Carrefour Itapevi","dias":["2026-08-01","2026-08-02","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31"],"grupos":[{"setor":"SAMS - CRFLOG","cargo":"ASSISTENTE ADMINISTRATIVO","solicitado":0,"realizado":{"2026-08-01":1,"2026-08-02":0,"2026-08-03":1,"2026-08-04":1,"2026-08-05":1,"2026-08-06":1,"2026-08-07":1,"2026-08-08":1,"2026-08-09":0,"2026-08-10":0,"2026-08-11":1,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}},{"setor":"SECO","cargo":"LÍDER OPERACIONAL","solicitado":1,"realizado":{"2026-08-01":0,"2026-08-02":0,"2026-08-03":0,"2026-08-04":0,"2026-08-05":0,"2026-08-06":0,"2026-08-07":0,"2026-08-08":0,"2026-08-09":0,"2026-08-10":0,"2026-08-11":0,"2026-08-12":0,"2026-08-13":0,"2026-08-14":0,"2026-08-15":0,"2026-08-16":0,"2026-08-17":0,"2026-08-18":0,"2026-08-19":0,"2026-08-20":0,"2026-08-21":0,"2026-08-22":0,"2026-08-23":0,"2026-08-24":0,"2026-08-25":0,"2026-08-26":0,"2026-08-27":0,"2026-08-28":0,"2026-08-29":0,"2026-08-30":0,"2026-08-31":0}}]}];
+const HE_BY_MAT = {};
+HE_AGG.forEach(h=>{ HE_BY_MAT[h.matricula] = h; });
+const FUNCAO_BY_MAT = {};
+DADOS.forEach(g=>{ g.colaboradores.forEach(c=>{ FUNCAO_BY_MAT[c.matricula] = c.funcao; }); });
+const heUiState = { q:'', sort:'' };
+function hoursToClock(v){
+  const total = Math.round((v||0)*60);
+  const h = Math.floor(total/60), m = total%60;
+  return pad2(h)+':'+pad2(m);
+}
+const REF_DATE = "2026-08-11";
+const DAYS_IN_MONTH = 31;
+
+/* ========================= UTILIDADES ========================= */
+function normTxt(s){ return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim(); }
+function pad2(n){ return n<10?'0'+n:''+n; }
+function isoDate(y,m,d){ return y+'-'+pad2(m)+'-'+pad2(d); }
+function fmtDateShort(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return d+'/'+m+'/'+y.slice(2);
+}
+function hoursToHHMM(v){
+  const h = Math.floor(v); const m = Math.round((v-h)*60);
+  return h+'h'+(m?pad2(m)+'m':'');
+}
+const WEEKDAY_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function weekdayOf(y,m,d){ return new Date(Date.UTC(y,m-1,d)).getUTCDay(); }
+
+/* Precompute _firstDMonth por colaborador (regra da secao 2.1) */
+DADOS.forEach(g=>{
+  g.colaboradores.forEach(c=>{
+    let firstDMonth = null;
+    Object.keys(c.dias).sort().forEach(iso=>{
+      if(c.dias[iso]==='D' && firstDMonth===null){
+        firstDMonth = parseInt(iso.split('-')[1],10);
+      }
+    });
+    c._firstDMonth = firstDMonth;
+  });
+});
+
+function belongsToMonth(colab, mesNum){
+  if(colab._firstDMonth===null) return true;
+  return mesNum <= colab._firstDMonth;
+}
+
+/* ========================= STATE / FILTROS ========================= */
+const state = { unidade:'', mes: MESES[MESES.length-1]||'', turno:'', cargo:'', funcao:'' };
+
+function populateSelect(sel, values, allLabel){
+  sel.innerHTML='';
+  const optAll = document.createElement('option');
+  optAll.value=''; optAll.textContent=allLabel;
+  sel.appendChild(optAll);
+  values.forEach(v=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
+  });
+}
+
+function initFilters(){
+  const selUnidade = document.querySelectorAll('.f-unidade');
+  const selMes = document.querySelectorAll('.f-mes');
+  const selTurno = document.querySelectorAll('.f-turno');
+  const selCargo = document.querySelectorAll('.f-cargo');
+  const selFuncao = document.querySelectorAll('.f-funcao');
+
+  selUnidade.forEach(s=>populateSelect(s, UNIDS, 'Todas'));
+  selMes.forEach(s=>populateSelect(s, MESES, 'Todos'));
+  selTurno.forEach(s=>populateSelect(s, TURNOS, 'Todos'));
+  selCargo.forEach(s=>populateSelect(s, CARGOS, 'Todos'));
+  selFuncao.forEach(s=>populateSelect(s, FUNCOES, 'Todos'));
+  selMes.forEach(s=>{ s.value = state.mes; });
+
+  function syncAndRender(field, val){
+    state[field]=val;
+    document.querySelectorAll('.f-'+field).forEach(s=>{ s.value = val; });
+    renderAll();
+  }
+  selUnidade.forEach(s=>s.addEventListener('change', e=>syncAndRender('unidade', e.target.value)));
+  selMes.forEach(s=>s.addEventListener('change', e=>syncAndRender('mes', e.target.value)));
+  selTurno.forEach(s=>s.addEventListener('change', e=>syncAndRender('turno', e.target.value)));
+  selCargo.forEach(s=>s.addEventListener('change', e=>syncAndRender('cargo', e.target.value)));
+  selFuncao.forEach(s=>s.addEventListener('change', e=>syncAndRender('funcao', e.target.value)));
+
+  document.querySelectorAll('.btn-clear').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.unidade=''; state.mes=''; state.turno=''; state.cargo=''; state.funcao='';
+      document.querySelectorAll('.f-unidade,.f-mes,.f-turno,.f-cargo,.f-funcao').forEach(s=>{ s.value=''; });
+      renderAll();
+    });
+  });
+}
+
+function noDataBlock(motivo){
+  return '<div class="nodata-block"><div class="nodata-title">Dados não disponíveis para esse filtro</div><div class="nodata-sub">'+motivo+'</div></div>';
+}
+
+/* Retorna colaboradores filtrados (grupo + colaborador), respeitando o corte por mes (2.1) */
+function filteredColaboradores(){
+  const mesNum = state.mes ? MES_NUM[state.mes] : null;
+  const out = [];
+  DADOS.forEach(g=>{
+    if(state.unidade && g.unidade!==state.unidade) return;
+    if(state.turno && g.turno!==state.turno) return;
+    g.colaboradores.forEach(c=>{
+      if(state.cargo && c.cargo!==state.cargo) return;
+      if(state.funcao && c.funcao!==state.funcao) return;
+      if(mesNum && !belongsToMonth(c, mesNum)) return;
+      out.push({unidade:g.unidade, turno:g.turno, colab:c});
+    });
+  });
+  return out;
+}
+
+function diasNoMes(mesNum){
+  const out = [];
+  for(let d=1; d<=DAYS_IN_MONTH; d++){ out.push(isoDate(2026, mesNum, d)); }
+  return out;
+}
+
+function statsFor(rows, mesNum){
+  const dias = mesNum ? diasNoMes(mesNum) : null;
+  let P=0,FJ=0,FI=0,FOLGA=0,D=0,FER=0,FERIAS=0;
+  rows.forEach(r=>{
+    Object.keys(r.colab.dias).forEach(iso=>{
+      if(dias && MES_NUM_from_iso(iso)!==mesNum) return;
+      const code = r.colab.dias[iso];
+      if(code==='P') P++;
+      else if(code==='FJ') FJ++;
+      else if(code==='FI') FI++;
+      else if(code==='FOLGA') FOLGA++;
+      else if(code==='D') D++;
+      else if(code==='FER') FER++;
+      else if(code==='FERIAS') FERIAS++;
+    });
+  });
+  const base = P+FJ+FI;
+  const pctPresenca = base>0 ? +(P/base*100).toFixed(1) : 0;
+  const pctAbsent = base>0 ? +((FJ+FI)/base*100).toFixed(1) : 0;
+  return {P,FJ,FI,FOLGA,D,FER,FERIAS,pctPresenca,pctAbsent,base};
+}
+function MES_NUM_from_iso(iso){ return parseInt(iso.split('-')[1],10); }
+
+/* ========================= KPIs (Visao Geral) ========================= */
+function renderKPIs(){
+  const rows = filteredColaboradores();
+  const mesNum = state.mes ? MES_NUM[state.mes] : MES_NUM[MESES[MESES.length-1]];
+  const st = statsFor(rows, mesNum);
+  const nColab = rows.length;
+  const nUnidades = new Set(rows.map(r=>r.unidade)).size;
+
+  const dimRows = DIM_DADOS.filter(d=> !state.unidade || d.unidade===state.unidade);
+  const solicitado = dimRows.reduce((s,d)=>s+d.solicitado,0);
+  const contratado = dimRows.reduce((s,d)=>s+d.contratado,0);
+  const gap = solicitado - contratado;
+  const unidadesComGap = new Set(dimRows.filter(d=>d.solicitado>d.contratado).map(d=>d.unidade)).size;
+
+  const mov = PRESENCA_DADOS.filter(p=> !state.unidade || p.unidade===state.unidade);
+  const admissoes = mov.filter(m=>m.tipo==='Admissão').length;
+  const desligamentos = mov.filter(m=>m.tipo==='Desligamento').length;
+
+  const cards = [
+    {v:st.P.toLocaleString('pt-BR'), l:'Presenças Efetivas', s:st.base+' previstas'},
+    {v:st.pctPresenca.toFixed(1)+'%', l:'Taxa de Presença', cls:'k-green'},
+    {v:st.pctAbsent.toFixed(1)+'%', l:'% Absenteísmo', cls:'k-red'},
+    {v:st.FJ.toLocaleString('pt-BR'), l:'Falta Justificada (FJ)', s:(st.base>0?(st.FJ/st.base*100).toFixed(1):'0')+'% do total', cls:'k-amber'},
+    {v:st.FI.toLocaleString('pt-BR'), l:'Falta Injustificada (FI)', s:(st.base>0?(st.FI/st.base*100).toFixed(1):'0')+'% do total', cls:'k-red'},
+    {v:nUnidades, l:'Nº de Unidades'},
+    {v:nColab, l:'Nº de Colaboradores', cls:'k-indigo'},
+    {v:solicitado+' / '+contratado, l:'Vagas Solicitadas / Contratadas'},
+    {v:gap, l:'GAP de Posições em Aberto', cls:'k-amber'},
+    {v:unidadesComGap, l:'Unidades com GAP', cls:'k-red'},
+    {v:st.P.toLocaleString('pt-BR'), l:'Presenças Totais'},
+    {v:desligamentos, l:'Desligamentos', cls:'k-red'},
+    {v:admissoes, l:'Admissões', cls:'k-green'},
+    {v:contratado, l:'Dimensionamento Total (contratado)', cls:'k-purple'},
+  ];
+  document.getElementById('kpi-row').innerHTML = cards.map(c=>
+    '<div class="kpi '+(c.cls||'')+'"><div class="kv">'+c.v+'</div><div class="kl">'+c.l+'</div>'+(c.s?'<div class="ks">'+c.s+'</div>':'')+'</div>'
+  ).join('');
+  document.getElementById('kpi-note').textContent = 'Filtros ativos: '+describeFilters();
+}
+
+function describeFilters(){
+  const parts=[];
+  parts.push('Unidade: '+(state.unidade||'Todas'));
+  parts.push('Mês: '+(state.mes||'Todos'));
+  parts.push('Turno: '+(state.turno||'Todos'));
+  parts.push('Setor: '+(state.cargo||'Todos'));
+  parts.push('Cargo: '+(state.funcao||'Todos'));
+  return parts.join(' · ');
+}
+
+/* ========================= GRADE DIARIA ========================= */
+const STATUS_LABELS = {P:'Presença',FJ:'Falta Justificada',FI:'Falta Injustificada',FOLGA:'Folga',FER:'Feriado',FERIAS:'Férias',D:'Desligado',AT:'Afastamento',INT:'Integração'};
+
+function buildGradeGroups(){
+  const rows = filteredColaboradores();
+  const mesNum = state.mes ? MES_NUM[state.mes] : MES_NUM[MESES[MESES.length-1]];
+  const groups = {};
+  rows.forEach(r=>{
+    const key = r.unidade+'|'+r.turno;
+    if(!groups[key]) groups[key] = {unidade:r.unidade, turno:r.turno, colaboradores:[]};
+    groups[key].colaboradores.push(r.colab);
+  });
+  return {groups:Object.values(groups), mesNum};
+}
+
+function diaTemFolgaGeral(colaboradores, iso){
+  if(colaboradores.length===0) return false;
+  return colaboradores.every(c=> c.dias[iso]==='FOLGA' || c.dias[iso]===undefined);
+}
+
+function renderGrade(){
+  const {groups, mesNum} = buildGradeGroups();
+  const frozenHolder = document.getElementById('grade-frozen-holder');
+  const scrollHolder = document.getElementById('grade-scroll-holder');
+
+  if(groups.length===0){
+    frozenHolder.innerHTML = '';
+    scrollHolder.innerHTML = noDataBlock('Nenhum colaborador corresponde à combinação de filtros selecionada.');
+    document.getElementById('grade-legend').innerHTML = '';
+    return;
+  }
+
+  const dias = diasNoMes(mesNum);
+  // detectar "folga geral" por dia (considerando todos os colaboradores filtrados)
+  const allColab = groups.flatMap(g=>g.colaboradores);
+  const folgaGeralByDay = {};
+  dias.forEach(iso=>{ folgaGeralByDay[iso] = diaTemFolgaGeral(allColab, iso); });
+
+  let fh = '<table class="tgrade tgrade-frozen"><colgroup><col class="c-nome"><col class="c-uni"><col class="c-setor"><col class="c-cargo"><col class="c-turno"></colgroup><thead><tr><th style="text-align:left;padding-left:8px;">Colaborador</th><th>Unidade</th><th>Setor</th><th>Cargo</th><th>Turno</th></tr></thead><tbody>';
+  let sh = '<table class="tgrade tgrade-scroll"><thead><tr>';
+  dias.forEach(iso=>{
+    const [y,m,d] = iso.split('-');
+    const wd = WEEKDAY_PT[weekdayOf(+y,+m,+d)];
+    const cls = folgaGeralByDay[iso] ? ' class="wk-red"' : '';
+    sh += '<th'+cls+' style="min-width:34px;">'+d+'/'+m+'<br>'+wd+'</th>';
+  });
+  sh += '<th style="min-width:66px; background:var(--blue);">Presenças<br>no mês</th>'
+      + '<th style="min-width:66px; background:var(--amber);">Faltas Just.<br>no mês</th>'
+      + '<th style="min-width:66px; background:var(--red);">Faltas Injust.<br>no mês</th>'
+      + '<th style="min-width:66px;">Folgas<br>no mês</th>'
+      + '<th style="min-width:60px; background:var(--purple);">HE 50%<br>no mês</th>'
+      + '<th style="min-width:60px; background:var(--purple);">HE 100%<br>no mês</th>'
+      + '<th style="min-width:60px; background:var(--purple);">HE Total<br>no mês</th>'
+      + '</tr></thead><tbody>';
+
+  const resumoDefs = [
+    {key:'FER', label:'Feriado', cls:'r-fer'},
+    {key:'FERIAS', label:'Férias', cls:'r-ferias'},
+    {key:'FOLGA', label:'Folga', cls:'r-folga'},
+    {key:'D', label:'Desligado', cls:'r-desl'},
+    {key:'FI', label:'Falta Injustificada (FI)', cls:'r-fi'},
+    {key:'FJ', label:'Falta Justificada (FJ)', cls:'r-fj'},
+    {key:'P', label:'Presença', cls:'r-pres'},
+    {key:'PCT', label:'% de Presença', cls:'r-pct'},
+  ];
+
+  groups.forEach(g=>{
+    const ncols = dias.length + 7 + 1; // +7 totais, +1 coluna nome (frozen tem 5 proprias)
+    fh += '<tr class="grp-header"><td colspan="5">'+g.unidade+' — '+g.turno+'</td></tr>';
+    sh += '<tr class="grp-header"><td colspan="'+(dias.length+7)+'"></td></tr>';
+
+    resumoDefs.forEach(rd=>{
+      fh += '<tr><td class="tr-res-label '+rd.cls+'" colspan="5">'+rd.label+'</td></tr>';
+      let rowHtml = '<tr>';
+      let dayCounts = dias.map(iso=>{
+        let cnt = 0;
+        g.colaboradores.forEach(c=>{
+          const code = c.dias[iso];
+          if(rd.key==='PCT') return;
+          if(code===rd.key) cnt++;
+        });
+        return cnt;
+      });
+      dias.forEach((iso,i)=>{
+        if(rd.key==='PCT'){
+          let p=0, fj=0, fi=0;
+          g.colaboradores.forEach(c=>{
+            const code = c.dias[iso];
+            if(code==='P') p++; else if(code==='FJ') fj++; else if(code==='FI') fi++;
+          });
+          const base = p+fj+fi;
+          const pct = base>0 ? (p/base*100).toFixed(1) : '0.0';
+          rowHtml += '<td class="tr-res-label '+rd.cls+'">'+pct+'%</td>';
+        } else {
+          rowHtml += '<td class="tr-res-label '+rd.cls+'">'+(dayCounts[i]||'')+'</td>';
+        }
+      });
+      const monthTotal = rd.key==='PCT' ? null : dayCounts.reduce((a,b)=>a+b,0);
+      const totColsForKey = {P:0, FJ:1, FI:2, FOLGA:3};
+      const targetCol = totColsForKey.hasOwnProperty(rd.key) ? totColsForKey[rd.key] : -1;
+      for(let ci=0; ci<7; ci++){
+        rowHtml += (ci===targetCol && monthTotal!==null) ? '<td>'+monthTotal+'</td>' : '<td class="tr-res-label" style="color:var(--tx-muted);">—</td>';
+      }
+      rowHtml += '</tr>';
+      sh += rowHtml;
+    });
+
+    g.colaboradores.forEach(c=>{
+      const nomeShort = c.nome.length>16 ? c.nome.slice(0,16)+'…' : c.nome;
+      fh += '<tr><td class="td-nome" title="'+c.nome+'">'+nomeShort+'</td><td class="td-uni">'+g.unidade+'</td><td class="td-cargo" title="'+c.cargo+'">'+c.cargo+'</td><td class="td-cargo" title="'+c.funcao+'">'+c.funcao+'</td><td class="td-turno" title="'+g.turno+'">'+g.turno+'</td></tr>';
+      let rowHtml = '<tr>';
+      let totP=0, totFJ=0, totFI=0, totFOLGA=0;
+      dias.forEach(iso=>{
+        const code = c.dias[iso];
+        let display = '·';
+        let cls = 'st-empty';
+        if(code){ display = code==='FERIAS' ? 'FÉR' : code; cls = 'st-'+code; }
+        if(code==='P') totP++; else if(code==='FJ') totFJ++; else if(code==='FI') totFI++; else if(code==='FOLGA') totFOLGA++;
+        const wkCls = folgaGeralByDay[iso] ? ' daycell weekend' : ' daycell';
+        rowHtml += '<td class="'+cls+wkCls+'" title="'+(STATUS_LABELS[code]||'Sem registro')+'">'+display+'</td>';
+      });
+      const heRow = HE_BY_MAT[c.matricula];
+      const ex = heRow ? heRow.ex : 0, en = heRow ? heRow.en : 0;
+      rowHtml += '<td>'+totP+'</td><td>'+totFJ+'</td><td>'+totFI+'</td><td>'+totFOLGA+'</td>'
+        + '<td style="color:var(--purple);">'+(ex? hoursToClock(ex):'—')+'</td>'
+        + '<td style="color:var(--purple);">'+(en? hoursToClock(en):'—')+'</td>'
+        + '<td style="color:var(--purple); font-weight:800;">'+((ex+en)? hoursToClock(ex+en):'—')+'</td></tr>';
+      sh += rowHtml;
+    });
+  });
+
+  fh += '</tbody></table>';
+  sh += '</tbody></table>';
+  frozenHolder.innerHTML = fh;
+  scrollHolder.innerHTML = sh;
+
+  syncGradeRowHeights('#gradeWrap');
+
+  const legendItems = [
+    {t:'P — Presença', cls:'st-P'},{t:'FJ — Falta Justificada', cls:'st-FJ'},{t:'FI — Falta Injustificada', cls:'st-FI'},
+    {t:'FOLGA — Folga', cls:'st-FOLGA'},{t:'FER — Feriado', cls:'st-FER'},{t:'FÉRIAS', cls:'st-FERIAS'},
+    {t:'D — Desligado', cls:'st-D'},{t:'AT — Afastamento', cls:'st-AT'},{t:'INT — Integração', cls:'st-INT'},
+  ];
+  let legHtml = legendItems.map(li=>'<div class="leg-item"><span class="leg-sw '+li.cls+'" style="background:currentColor;"></span><span class="'+li.cls+'">'+li.t+'</span></div>').join('');
+  legHtml += '<div class="leg-item"><span class="leg-sw" style="background:#64748B"></span>Fim de semana</div>';
+  legHtml += '<div class="leg-item"><span class="leg-dot" style="background:#9900FF;border-radius:50%;"></span>Hora Extra (passe o mouse sobre a célula)</div>';
+  legHtml += '<div class="leg-item"><span class="leg-sw" style="background:#ED0000"></span>Folga Geral (ninguém trabalhou)</div>';
+  document.getElementById('grade-legend').innerHTML = legHtml;
+}
+
+function syncGradeRowHeights(scopeSel){
+  const scope = document.querySelector(scopeSel);
+  if(!scope) return;
+  const frozenRows = scope.querySelectorAll('.tgrade-frozen tbody tr');
+  const scrollRows = scope.querySelectorAll('.tgrade-scroll tbody tr');
+  const fHead = scope.querySelector('.tgrade-frozen thead tr');
+  const sHead = scope.querySelector('.tgrade-scroll thead tr');
+  if(fHead && sHead){
+    fHead.style.height=''; sHead.style.height='';
+    const h = Math.max(fHead.getBoundingClientRect().height, sHead.getBoundingClientRect().height);
+    fHead.style.height = h+'px'; sHead.style.height = h+'px';
+  }
+  const n = Math.min(frozenRows.length, scrollRows.length);
+  for(let i=0;i<n;i++){
+    frozenRows[i].style.height=''; scrollRows[i].style.height='';
+    const h = Math.max(frozenRows[i].getBoundingClientRect().height, scrollRows[i].getBoundingClientRect().height);
+    frozenRows[i].style.height = h+'px';
+    scrollRows[i].style.height = h+'px';
+  }
+}
+
+/* Sincroniza a coluna congelada (nome/cargo) com o scroll vertical da area
+   rolavel, e liga as setas de navegacao horizontal — mesmo padrao usado nas
+   duas grades (RH e Operacional) para manter as barras de rolagem sempre
+   acessiveis sem precisar descer a pagina inteira. */
+function initGridScrollSync(cfg){
+  const scrollCol = document.getElementById(cfg.scrollColId);
+  const frozenCol = document.getElementById(cfg.frozenColId);
+  if(!scrollCol || !frozenCol) return;
+  scrollCol.addEventListener('scroll', ()=>{ frozenCol.scrollTop = scrollCol.scrollTop; }, {passive:true});
+  const btnL = document.getElementById(cfg.arrowLId);
+  const btnR = document.getElementById(cfg.arrowRId);
+  if(btnL) btnL.addEventListener('click', ()=>{ scrollCol.scrollBy({left:-240, behavior:'smooth'}); });
+  if(btnR) btnR.addEventListener('click', ()=>{ scrollCol.scrollBy({left:240, behavior:'smooth'}); });
+}
+
+/* ========================= PRESENCA DIARIA OPERACIONAL ========================= */
+/* Espelha a Presença Diária do RH (mesmas colunas de dia), mas em vez do status
+   individual de cada colaborador, compara por cargo/turno o quadro SOLICITADO
+   pelo cliente com o quadro REALIZADO (efetivamente presente naquele dia),
+   reproduzindo o bloco "DIMENSIONAMENTO REALIZADO" da planilha de origem. */
+function classCellOperacional(pct){
+  if(pct>=100) return 'op-exc';
+  if(pct>=90) return 'op-ok';
+  if(pct>=70) return 'op-warn';
+  return 'op-crit';
+}
+
+function renderOperacional(){
+  const frozenHolder = document.getElementById('oper-frozen-holder');
+  const scrollHolder = document.getElementById('oper-scroll-holder');
+  const turnosData = OPER_DADOS.filter(t=>
+    (!state.unidade || t.unidade===state.unidade) &&
+    (!state.turno || t.turno===state.turno)
+  );
+  if(turnosData.length===0){
+    frozenHolder.innerHTML = '';
+    scrollHolder.innerHTML = noDataBlock('Nenhum turno corresponde à combinação de filtros selecionada.');
+    document.getElementById('oper-legend').innerHTML = '';
+    return;
+  }
+  const dias = turnosData[0].dias;
+  const setorAtivo = !!state.cargo; // filtro "Setor" tambem se aplica a esta grade
+
+  let fh = '<table class="tgrade tgrade-frozen"><colgroup><col style="width:110px"><col style="width:170px"><col style="width:82px"></colgroup><thead><tr><th style="text-align:left;padding-left:8px;">Setor</th><th style="text-align:left;padding-left:8px;">Cargo</th><th>Solicitado</th></tr></thead><tbody>';
+  let sh = '<table class="tgrade tgrade-scroll"><thead><tr>';
+  dias.forEach(iso=>{
+    const [y,m,d] = iso.split('-');
+    const wd = WEEKDAY_PT[weekdayOf(+y,+m,+d)];
+    sh += '<th style="min-width:34px;">'+d+'/'+m+'<br>'+wd+'</th>';
+  });
+  sh += '<th style="min-width:74px;">Média<br>Realizado</th><th style="min-width:74px;">% Médio<br>Atendido</th></tr></thead><tbody>';
+
+  let algumGrupo = false;
+
+  turnosData.forEach(t=>{
+    const gruposFiltrados = t.grupos.filter(gr=>
+      (!state.cargo || gr.setor===state.cargo) &&
+      (!state.funcao || gr.cargo===state.funcao)
+    );
+    if(gruposFiltrados.length===0) return;
+    algumGrupo = true;
+
+    const turnoSolicTotal = gruposFiltrados.reduce((s,gr)=>s+gr.solicitado,0);
+    const turnoRealizSum = {};
+    dias.forEach(iso=>{ turnoRealizSum[iso] = gruposFiltrados.reduce((s,gr)=>s+(gr.realizado[iso]||0),0); });
+
+    const tituloTurno = t.unidade+' — '+t.turno+(setorAtivo ? ' · Setor: '+state.cargo : '');
+    fh += '<tr class="grp-header"><td colspan="3">'+tituloTurno+'</td></tr>';
+    sh += '<tr class="grp-header"><td colspan="'+(dias.length+2)+'"></td></tr>';
+
+    gruposFiltrados.forEach(gr=>{
+      fh += '<tr><td class="td-cargo" style="text-align:left; padding-left:8px;" title="'+gr.setor+'">'+gr.setor+'</td><td class="td-nome" style="text-align:left;" title="'+gr.cargo+'">'+gr.cargo+'</td><td style="font-weight:800; color:var(--indigo);">'+gr.solicitado+'</td></tr>';
+      let rowHtml = '<tr>';
+      let somaRealizado=0, diasComDado=0;
+      dias.forEach(iso=>{
+        const real = gr.realizado[iso] || 0;
+        if(iso > REF_DATE){
+          rowHtml += '<td class="daycell st-empty">·</td>';
+        } else {
+          const pct = gr.solicitado>0 ? (real/gr.solicitado*100) : 100;
+          const cls = classCellOperacional(pct);
+          somaRealizado += real; diasComDado++;
+          rowHtml += '<td class="daycell '+cls+'" title="'+gr.setor+' — '+gr.cargo+' — Solicitado: '+gr.solicitado+' · Realizado: '+real+' ('+pct.toFixed(0)+'%)">'+real+'</td>';
+        }
+      });
+      const media = diasComDado>0 ? (somaRealizado/diasComDado) : 0;
+      const pctMedio = gr.solicitado>0 ? (media/gr.solicitado*100) : 100;
+      rowHtml += '<td style="font-weight:700;">'+media.toFixed(1)+'</td><td class="'+classCellOperacional(pctMedio)+'" style="font-weight:800;">'+pctMedio.toFixed(0)+'%</td></tr>';
+      sh += rowHtml;
+    });
+
+    fh += '<tr class="tr-res-label" style="color:var(--indigo);"><td colspan="3">TOTAL '+t.turno+' (Solic. '+turnoSolicTotal+')</td></tr>';
+    let totRow = '<tr style="background:#F7F9FB;">';
+    let somaTotalRealizado=0, diasComDadoTotal=0;
+    dias.forEach(iso=>{
+      const real = turnoRealizSum[iso];
+      if(iso > REF_DATE){
+        totRow += '<td class="daycell st-empty">·</td>';
+      } else {
+        const pct = turnoSolicTotal>0 ? (real/turnoSolicTotal*100) : 100;
+        somaTotalRealizado += real; diasComDadoTotal++;
+        totRow += '<td class="daycell '+classCellOperacional(pct)+'" style="font-weight:800;">'+real+'</td>';
+      }
+    });
+    const mediaTot = diasComDadoTotal>0 ? somaTotalRealizado/diasComDadoTotal : 0;
+    const pctMedioTot = turnoSolicTotal>0 ? (mediaTot/turnoSolicTotal*100) : 100;
+    totRow += '<td style="font-weight:800;">'+mediaTot.toFixed(1)+'</td><td class="'+classCellOperacional(pctMedioTot)+'" style="font-weight:800;">'+pctMedioTot.toFixed(0)+'%</td></tr>';
+    sh += totRow;
+  });
+
+  if(!algumGrupo){
+    frozenHolder.innerHTML = '';
+    scrollHolder.innerHTML = noDataBlock('Nenhum setor/cargo corresponde à combinação de filtros selecionada.');
+    document.getElementById('oper-legend').innerHTML = '';
+    return;
+  }
+
+  fh += '</tbody></table>';
+  sh += '</tbody></table>';
+  frozenHolder.innerHTML = fh;
+  scrollHolder.innerHTML = sh;
+
+  syncGradeRowHeights('#operWrap');
+
+  const legendItems = [
+    {t:'≥ 100% do solicitado — excedente', cls:'op-exc'},
+    {t:'90–99% do solicitado — atendido', cls:'op-ok'},
+    {t:'70–89% do solicitado — alerta', cls:'op-warn'},
+    {t:'< 70% do solicitado — crítico', cls:'op-crit'},
+  ];
+  let legHtml = legendItems.map(li=>'<div class="leg-item"><span class="leg-sw '+li.cls+'" style="background:currentColor;"></span><span class="'+li.cls+'">'+li.t+'</span></div>').join('');
+  legHtml += '<div class="leg-item"><span class="leg-sw" style="background:#B7C2D0;"></span>Dia ainda não ocorrido</div>';
+  document.getElementById('oper-legend').innerHTML = legHtml;
+}
+
+/* ========================= PLUGIN DE ROTULO NAS BARRAS ========================= */
+const barValuePlugin = {
+  id:'barValuePlugin',
+  afterDatasetsDraw(chart){
+    const {ctx} = chart;
+    const horizontal = chart.options.indexAxis === 'y';
+    const scaleOpts = chart.options.scales || {};
+    const isStacked = !!((scaleOpts.x && scaleOpts.x.stacked) || (scaleOpts.y && scaleOpts.y.stacked));
+    const pluginOpts = (chart.options.plugins && chart.options.plugins.barValuePlugin) || {};
+    const fmt = pluginOpts.unit==='h' ? (v=>hoursToHHMM(v)+'h') : null;
+    ctx.save();
+    ctx.fillStyle='#0F1B2D';
+    ctx.font='700 10px Inter, sans-serif';
+    if(isStacked){
+      const barIdxs = chart.data.datasets.map((d,i)=>i).filter(i=>{
+        const meta = chart.getDatasetMeta(i);
+        return meta.type==='bar' && !meta.hidden;
+      });
+      if(barIdxs.length){
+        const lastMeta = chart.getDatasetMeta(barIdxs[barIdxs.length-1]);
+        const n = (chart.data.labels||[]).length;
+        for(let i=0;i<n;i++){
+          const total = barIdxs.reduce((sum,di)=>{
+            const v = chart.data.datasets[di].data[i];
+            return sum + (typeof v==='number' ? v : 0);
+          },0);
+          const bar = lastMeta.data[i];
+          if(!bar || total<=0) continue;
+          const label = fmt ? fmt(total) : (Number.isInteger(total)? total.toLocaleString('pt-BR') : total.toFixed(1));
+          if(horizontal){ ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(label, bar.x+6, bar.y); }
+          else { ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.fillText(label, bar.x, bar.y-4); }
+        }
+      }
+      ctx.restore();
+      return;
+    }
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta = chart.getDatasetMeta(di);
+      if(meta.type!=='bar' || meta.hidden) return;
+      meta.data.forEach((bar,i)=>{
+        const v = ds.data[i];
+        if(v===undefined||v===null) return;
+        const label = typeof v==='number' ? (Number.isInteger(v)? v.toLocaleString('pt-BR') : v.toFixed(1)) : v;
+        if(horizontal){ ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(label, bar.x+6, bar.y); }
+        else { ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.fillText(label, bar.x, bar.y-4); }
+      });
+    });
+    ctx.restore();
+  }
+};
+Chart.register(barValuePlugin);
+
+const charts = {};
+function renderChartSafe(cardCanvasId, label, fn){
+  try { fn(); }
+  catch(e){
+    console.error('Falha ao renderizar gráfico ('+label+'):', e);
+    const canvas = document.getElementById(cardCanvasId);
+    const wrap = canvas ? canvas.closest('.ch,.ch-donut,.ch-hbar') : null;
+    if(wrap) wrap.innerHTML = '<div class="chart-fallback-msg">Não foi possível carregar este gráfico. Tente atualizar a página.</div>';
+  }
+}
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
+
+/* ========================= GRAFICOS PRESENCA (secao Graficos) ========================= */
+function groupStatsBy(rows, mesNum, keyFn){
+  const map = {};
+  rows.forEach(r=>{
+    const k = keyFn(r);
+    if(!map[k]) map[k] = [];
+    map[k].push(r);
+  });
+  const out = {};
+  Object.keys(map).forEach(k=>{ out[k] = statsFor(map[k], mesNum); });
+  return out;
+}
+
+function renderCharts(){
+  const rows = filteredColaboradores();
+  const mesNum = state.mes ? MES_NUM[state.mes] : MES_NUM[MESES[MESES.length-1]];
+  if(rows.length===0){
+    ['chPresUnidade','chPresFaltas','chPresTurno','chPresSetor'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el){ const wrap = el.closest('.ch'); wrap.innerHTML = noDataBlock('Nenhum colaborador corresponde à combinação de filtros selecionada.'); }
+    });
+    return;
+  }
+
+  const byUnidade = groupStatsBy(rows, mesNum, r=>r.unidade);
+  const byTurno = groupStatsBy(rows, mesNum, r=>r.turno);
+  const bySetor = groupStatsBy(rows, mesNum, r=>r.colab.cargo);
+
+  const avg = (obj, field)=>{
+    const vals = Object.values(obj).map(o=>o[field]);
+    return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+  };
+
+  renderChartSafe('chPresUnidade','% Presença por Unidade',()=>{
+    destroyChart('presUnidade');
+    const labels = Object.keys(byUnidade);
+    const vals = labels.map(k=>byUnidade[k].pctPresenca);
+    const media = avg(byUnidade,'pctPresenca');
+    charts.presUnidade = new Chart(document.getElementById('chPresUnidade'), {
+      type:'bar',
+      data:{labels, datasets:[
+        {type:'bar', label:'% Presença', data:vals, backgroundColor:'#0079C2', borderRadius:4, order:2},
+        {type:'line', label:'Média', data:labels.map(()=>media), borderColor:'#C0281C', borderWidth:1.5, pointRadius:0, order:1, fill:false}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:100}}, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10.5}}}}}
+    });
+  });
+
+  renderChartSafe('chPresFaltas','Presenças x Faltas por Unidade',()=>{
+    destroyChart('presFaltas');
+    const labels = Object.keys(byUnidade);
+    const pres = labels.map(k=>byUnidade[k].P);
+    const faltas = labels.map(k=>byUnidade[k].FJ+byUnidade[k].FI);
+    const mediaPres = pres.length ? pres.reduce((a,b)=>a+b,0)/pres.length : 0;
+    charts.presFaltas = new Chart(document.getElementById('chPresFaltas'), {
+      data:{labels, datasets:[
+        {type:'bar', label:'Presenças', data:pres, backgroundColor:'#0079C2', borderRadius:4},
+        {type:'bar', label:'Faltas (FJ+FI)', data:faltas, backgroundColor:'#C0281C', borderRadius:4},
+        {type:'line', label:'Média Presenças', data:labels.map(()=>mediaPres), borderColor:'#1E3A6E', borderWidth:1.5, pointRadius:0, fill:false}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10.5}}}}}
+    });
+  });
+
+  renderChartSafe('chPresTurno','% Presença por Turno',()=>{
+    destroyChart('presTurno');
+    const labels = Object.keys(byTurno);
+    const vals = labels.map(k=>byTurno[k].pctPresenca);
+    const media = avg(byTurno,'pctPresenca');
+    charts.presTurno = new Chart(document.getElementById('chPresTurno'), {
+      data:{labels, datasets:[
+        {type:'bar', label:'% Presença', data:vals, backgroundColor:'#2D5099', borderRadius:4, order:2},
+        {type:'line', label:'Média', data:labels.map(()=>media), borderColor:'#C0281C', borderWidth:1.5, pointRadius:0, order:1, fill:false}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:100}}, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10.5}}}}}
+    });
+  });
+
+  renderChartSafe('chPresSetor','% Presença por Setor',()=>{
+    destroyChart('presSetor');
+    const labels = Object.keys(bySetor);
+    const vals = labels.map(k=>bySetor[k].pctPresenca);
+    const media = avg(bySetor,'pctPresenca');
+    charts.presSetor = new Chart(document.getElementById('chPresSetor'), {
+      data:{labels, datasets:[
+        {type:'bar', label:'% Presença', data:vals, backgroundColor:'#0E7A43', borderRadius:4, order:2},
+        {type:'line', label:'Média', data:labels.map(()=>media), borderColor:'#C0281C', borderWidth:1.5, pointRadius:0, order:1, fill:false}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:100}, x:{ticks:{font:{size:9.5}}}}, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10.5}}}}}
+    });
+  });
+}
+
+/* ========================= EVOLUCAO (dia a dia) ========================= */
+function renderEvolucao(){
+  const rows = filteredColaboradores();
+  const mesNum = state.mes ? MES_NUM[state.mes] : MES_NUM[MESES[MESES.length-1]];
+  const holderIds = ['chEvoPct','chEvoFaltas'];
+  if(rows.length===0){
+    holderIds.forEach(id=>{ const el=document.getElementById(id); if(el){ el.closest('.ch').innerHTML = noDataBlock('Nenhum colaborador corresponde à combinação de filtros selecionada.'); } });
+    document.querySelector('#evo-table thead').innerHTML=''; document.querySelector('#evo-table tbody').innerHTML='';
+    return;
+  }
+  const dias = diasNoMes(mesNum).filter(iso=>{
+    // so exibe dias com pelo menos 1 registro (evita poluir com dias futuros vazios)
+    return rows.some(r=>r.colab.dias[iso]!==undefined);
+  });
+  if(dias.length===0){
+    holderIds.forEach(id=>{ const el=document.getElementById(id); if(el){ el.closest('.ch').innerHTML = noDataBlock('Sem dias com registro no período selecionado.'); } });
+    return;
+  }
+  const pctSeries = [], fjSeries = [], fiSeries = [];
+  dias.forEach(iso=>{
+    let p=0,fj=0,fi=0;
+    rows.forEach(r=>{
+      const code = r.colab.dias[iso];
+      if(code==='P') p++; else if(code==='FJ') fj++; else if(code==='FI') fi++;
+    });
+    const base = p+fj+fi;
+    pctSeries.push(base>0?+(p/base*100).toFixed(1):0);
+    fjSeries.push(fj); fiSeries.push(fi);
+  });
+  const labels = dias.map(fmtDateShort);
+
+  renderChartSafe('chEvoPct','% Presença — Evolução Diária',()=>{
+    destroyChart('evoPct');
+    charts.evoPct = new Chart(document.getElementById('chEvoPct'), {
+      data:{labels, datasets:[
+        {type:'bar', label:'% Presença', data:pctSeries, backgroundColor:'#0079C2', borderRadius:4, order:2},
+        {type:'line', label:'Média período', data:labels.map(()=> pctSeries.reduce((a,b)=>a+b,0)/pctSeries.length), borderColor:'#C0281C', borderWidth:1.5, pointRadius:0, order:1, fill:false}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true, max:100}}, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10.5}}}}}
+    });
+  });
+  renderChartSafe('chEvoFaltas','FJ e FI — Evolução Diária',()=>{
+    destroyChart('evoFaltas');
+    charts.evoFaltas = new Chart(document.getElementById('chEvoFaltas'), {
+      type:'bar',
+      data:{labels, datasets:[
+        {label:'FJ', data:fjSeries, backgroundColor:'#ED7D31', borderRadius:4},
+        {label:'FI', data:fiSeries, backgroundColor:'#ED0000', borderRadius:4}
+      ]},
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10.5}}}}}
+    });
+  });
+
+  let thead = '<tr><th>Data</th><th>% Presença</th><th>FJ</th><th>FI</th></tr>';
+  let tbody = dias.map((iso,i)=>'<tr><td>'+fmtDateShort(iso)+'</td><td>'+pctSeries[i].toFixed(1)+'%</td><td>'+fjSeries[i]+'</td><td>'+fiSeries[i]+'</td></tr>').join('');
+  document.querySelector('#evo-table thead').innerHTML = thead;
+  document.querySelector('#evo-table tbody').innerHTML = tbody;
+}
+
+/* ========================= MOVIMENTACOES ========================= */
+function renderMovimentacoes(){
+  const mov = PRESENCA_DADOS.filter(p=> (!state.unidade || p.unidade===state.unidade));
+  document.getElementById('mov-note').textContent = mov.length+' evento(s) — apenas admissões/desligamentos com data confirmada na fonte';
+  const thead = '<tr><th>Unidade Operacional</th><th>Mês</th><th>Colaborador Admitido</th><th>Data de Admissão</th><th>Colaborador Demitido</th><th>Data de Demissão</th></tr>';
+  let rowsHtml = '';
+  if(mov.length===0){
+    rowsHtml = '<tr><td colspan="6" style="text-align:center; color:var(--tx-muted); padding:24px;">Nenhuma movimentação com data confirmada para os filtros atuais.</td></tr>';
+  } else {
+    mov.sort((a,b)=> a.data.localeCompare(b.data)).forEach(m=>{
+      const mesLabel = MESES.find(ms=>MES_NUM[ms]===parseInt(m.data.split('-')[1],10)) || '';
+      if(m.tipo==='Admissão'){
+        rowsHtml += '<tr><td>'+m.unidade+'</td><td>'+mesLabel+'</td><td>'+m.colaborador+'</td><td>'+fmtDateShort(m.data)+'</td><td>—</td><td>—</td></tr>';
+      } else {
+        rowsHtml += '<tr><td>'+m.unidade+'</td><td>'+mesLabel+'</td><td>—</td><td>—</td><td>'+m.colaborador+'</td><td>'+fmtDateShort(m.data)+'</td></tr>';
+      }
+    });
+  }
+  document.querySelector('#mov-table thead').innerHTML = thead;
+  document.querySelector('#mov-table tbody').innerHTML = rowsHtml;
+}
+
+/* ========================= RESUMO ========================= */
+function renderResumo(){
+  const mesNum = state.mes ? MES_NUM[state.mes] : MES_NUM[MESES[MESES.length-1]];
+  const mesLabel = MESES.find(ms=>MES_NUM[ms]===mesNum) || MESES[0];
+  const allRows = filteredColaboradores();
+  const turnosPresentes = state.turno ? [state.turno] : TURNOS;
+  const thead = '<tr><th>Unidade</th><th>Mês</th><th>Turno</th><th>% Presença</th><th>% Absent.</th><th>Presenças</th><th>FJ</th><th>FI</th><th>Faltas</th><th>Status</th></tr>';
+  let rowsHtml = '';
+  const unidadesPresentes = state.unidade ? [state.unidade] : UNIDS;
+  unidadesPresentes.forEach(uni=>{
+    turnosPresentes.forEach(turno=>{
+      const rows = allRows.filter(r=>r.unidade===uni && r.turno===turno);
+      if(rows.length===0) return;
+      const st = statsFor(rows, mesNum);
+      const faltas = st.FJ+st.FI;
+      const status = st.pctPresenca>=95 ? {t:'Ótimo', cls:'dim-gap-ok'} : st.pctPresenca>=85 ? {t:'Atenção', cls:'dim-gap-warn'} : {t:'Crítico', cls:'dim-gap-crit'};
+      rowsHtml += '<tr><td>'+uni+'</td><td>'+mesLabel+'</td><td>'+turno+'</td><td>'+st.pctPresenca.toFixed(1)+'%</td><td>'+st.pctAbsent.toFixed(1)+'%</td><td>'+st.P+'</td><td>'+st.FJ+'</td><td>'+st.FI+'</td><td>'+faltas+'</td><td><span class="dim-card-gap-badge '+status.cls+'">'+status.t+'</span></td></tr>';
+    });
+  });
+  if(!rowsHtml) rowsHtml = '<tr><td colspan="10" style="text-align:center; color:var(--tx-muted); padding:24px;">Nenhum dado para os filtros atuais.</td></tr>';
+  document.querySelector('#resumo-table thead').innerHTML = thead;
+  document.querySelector('#resumo-table tbody').innerHTML = rowsHtml;
+}
+
+/* ========================= DIMENSIONAMENTO ========================= */
+function situacaoDim(pctAtendido){
+  if(pctAtendido>=100) return {t:'Excedente', cls:'dim-gap-exc', pctCls:'dim-pct-exc'};
+  if(pctAtendido>=90) return {t:'Atendido', cls:'dim-gap-ok', pctCls:'dim-pct-ok'};
+  if(pctAtendido>=70) return {t:'Alerta', cls:'dim-gap-warn', pctCls:'dim-pct-warn'};
+  return {t:'Crítico', cls:'dim-gap-crit', pctCls:'dim-pct-crit'};
+}
+
+const DIM_SETORES_SORTED = CARGOS.slice().sort((a,b)=>b.length-a.length);
+function dimSplitSetorCargo(str){
+  for(let i=0;i<DIM_SETORES_SORTED.length;i++){
+    const s = DIM_SETORES_SORTED[i];
+    if(str===s) return {setor:s, cargo:''};
+    if(str.indexOf(s+' - ')===0) return {setor:s, cargo:str.slice(s.length+3)};
+  }
+  return {setor:str, cargo:''};
+}
+
+function renderDimensionamento(){
+  const rowsAll = DIM_DADOS.filter(d=>{
+    if(state.unidade && d.unidade!==state.unidade) return false;
+    if(state.cargo){ const {setor} = dimSplitSetorCargo(d.cargo); if(setor!==state.cargo) return false; }
+    return true;
+  });
+  if(rowsAll.length===0){
+    document.getElementById('dim-kpi-row').innerHTML = noDataBlock('Nenhum registro de dimensionamento para os filtros atuais.');
+    document.querySelector('#dim-table thead').innerHTML=''; document.querySelector('#dim-table tbody').innerHTML='';
+    return;
+  }
+  const solicitado = rowsAll.reduce((s,d)=>s+d.solicitado,0);
+  const contratado = rowsAll.reduce((s,d)=>s+d.contratado,0);
+  const pctAtendido = solicitado>0 ? (contratado/solicitado*100) : 0;
+  const gapNeg = rowsAll.reduce((s,d)=> s + Math.max(0, d.solicitado-d.contratado), 0);
+  const gapPos = rowsAll.reduce((s,d)=> s + Math.max(0, d.contratado-d.solicitado), 0);
+
+  document.getElementById('dim-kpi-row').innerHTML = [
+    {v:solicitado, l:'Vagas Solicitadas'},
+    {v:contratado+' ('+pctAtendido.toFixed(1)+'%)', l:'Colaboradores Contratados', cls:'k-green'},
+    {v:gapNeg, l:'GAP Negativo (faltam pessoas)', cls:'k-red'},
+    {v:gapPos, l:'GAP Positivo (excesso)', cls:'k-indigo'},
+  ].map(c=>'<div class="kpi '+(c.cls||'')+'"><div class="kv">'+c.v+'</div><div class="kl">'+c.l+'</div></div>').join('');
+
+  // Detalhe por Setor (mesma granularidade da tabela de referência)
+  const bySetor = {};
+  rowsAll.forEach(d=>{
+    const {setor} = dimSplitSetorCargo(d.cargo);
+    if(!bySetor[setor]) bySetor[setor] = {unidade:d.unidade, solicitado:0, contratado:0};
+    bySetor[setor].solicitado += d.solicitado;
+    bySetor[setor].contratado += d.contratado;
+  });
+  const setoresOrdenados = Object.keys(bySetor).sort((a,b)=>{
+    const pa = bySetor[a].solicitado>0 ? bySetor[a].contratado/bySetor[a].solicitado : 1;
+    const pb = bySetor[b].solicitado>0 ? bySetor[b].contratado/bySetor[b].solicitado : 1;
+    return pa - pb;
+  });
+
+  const thead = '<tr><th>Unidade Operacional</th><th>Setor</th><th>Solicitado</th><th>Contratado</th><th>GAP</th><th>% Realizado</th><th>Situação</th></tr>';
+  const tbody = setoresOrdenados.map(setor=>{
+    const d = bySetor[setor];
+    const pct = d.solicitado>0 ? (d.contratado/d.solicitado*100) : 100;
+    const sit = situacaoDim(pct);
+    return '<tr><td>'+d.unidade+'</td><td>'+setor+'</td><td>'+d.solicitado+'</td><td>'+d.contratado+'</td><td>'+(d.solicitado-d.contratado)+'</td><td>'+pct.toFixed(1)+'%</td><td><span class="dim-card-gap-badge '+sit.cls+'">'+sit.t+'</span></td></tr>';
+  }).join('');
+  document.querySelector('#dim-table thead').innerHTML = thead;
+  document.querySelector('#dim-table tbody').innerHTML = tbody;
+}
+
+/* ========================= HORA EXTRA (agregada) ========================= */
+function heEvoPlaceholder(){
+  const el = document.getElementById('chHeEvo');
+  const wrap = el ? el.closest('.ch') : null;
+  if(wrap){
+    wrap.innerHTML = '<h3>Evolução de Horas Extras</h3><div class="chart-fallback-msg" style="padding:46px 10px;">Dado indisponível: os espelhos de ponto de origem cobrem apenas o período de 01–11/08/2026 — não há série histórica de outros meses para compor uma evolução temporal.</div>';
+  }
+}
+
+function buildHeStackedBar(canvasId, key, title, labels, dataMap, countMap){
+  renderChartSafe(canvasId, title, ()=>{
+    destroyChart(key);
+    charts[key] = new Chart(document.getElementById(canvasId), {
+      type:'bar', indexAxis:'y',
+      data:{labels, datasets:[
+        {label:'HE 50% (diurna)', data:labels.map(l=>+dataMap[l].ex.toFixed(1)), backgroundColor:'#0079C2', stack:'s'},
+        {label:'HE 100% (noturna)', data:labels.map(l=>+dataMap[l].en.toFixed(1)), backgroundColor:'#1E3A6E', stack:'s'}
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false, indexAxis:'y',
+        scales:{x:{stacked:true},y:{stacked:true}},
+        plugins:{
+          legend:{position:'bottom', labels:{boxWidth:10,font:{size:10.5}}},
+          barValuePlugin:{unit:'h'},
+          tooltip:{ callbacks:{ footer(items){
+            if(!items || !items.length) return '';
+            const l = items[0].label;
+            const n = (countMap && countMap[l]) || 0;
+            const tot = dataMap[l] ? (dataMap[l].ex+dataMap[l].en) : 0;
+            const media = n>0 ? tot/n : 0;
+            return 'Média por colaborador: '+hoursToHHMM(media)+' ('+n+' colab.)';
+          } } }
+        }
+      }
+    });
+  });
+}
+
+function renderHoraExtra(){
+  heEvoPlaceholder();
+  const rows = HE_AGG.filter(h=> (!state.unidade || h.unidade===state.unidade) && (!state.turno || h.turno===state.turno) && (!state.cargo || h.cargo===state.cargo) && (!state.funcao || FUNCAO_BY_MAT[h.matricula]===state.funcao));
+  if(rows.length===0){
+    document.getElementById('he-kpi-row').innerHTML = noDataBlock('Nenhum colaborador com hora extra registrada para os filtros atuais.');
+    document.querySelector('#he-table thead').innerHTML=''; document.querySelector('#he-table tbody').innerHTML='';
+    document.querySelector('#he-detail-table thead').innerHTML=''; document.querySelector('#he-detail-table tbody').innerHTML='';
+    document.getElementById('he-detail-count').textContent = '0 colaborador(es)';
+    ['chHeDonut','chHeUnidade','chHeTurno','chHeSetor','chHeCargo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.closest('.ch,.ch-donut,.ch-hbar').innerHTML=''; });
+    return;
+  }
+  const totalEx = rows.reduce((s,h)=>s+h.ex,0);
+  const totalEn = rows.reduce((s,h)=>s+h.en,0);
+  const totalHE = totalEx+totalEn;
+  const nColab = rows.length;
+  const media = nColab>0 ? totalHE/nColab : 0;
+
+  // agregação por unidade (tabela + gráfico)
+  const byUnidade = {};
+  rows.forEach(h=>{
+    if(!byUnidade[h.unidade]) byUnidade[h.unidade] = {ex:0,en:0,n:0};
+    byUnidade[h.unidade].ex += h.ex; byUnidade[h.unidade].en += h.en; byUnidade[h.unidade].n += 1;
+  });
+  const unidadesOrdenadas = Object.keys(byUnidade).sort((a,b)=> (byUnidade[b].ex+byUnidade[b].en) - (byUnidade[a].ex+byUnidade[a].en));
+  const maiorUnidade = unidadesOrdenadas[0] || '—';
+
+  document.getElementById('he-kpi-row').innerHTML = [
+    {v:hoursToHHMM(totalHE), l:'Total de Horas Extras (período)', cls:'k-amber'},
+    {v:nColab, l:'Colaboradores com HE'},
+    {v:hoursToHHMM(media), l:'Média de HE por Colaborador'},
+    {v:maiorUnidade, l:'Unidade com Maior Volume', cls:'k-red'},
+  ].map(c=>'<div class="kpi '+(c.cls||'')+'"><div class="kv" style="font-size:22px;">'+c.v+'</div><div class="kl">'+c.l+'</div></div>').join('');
+
+  // ---- Tabela: Horas Extras por Unidade — Ordenado por Maior Volume ----
+  const theadU = '<tr><th>Unidade</th><th>HE Diurna (h)</th><th>HE Noturna (h)</th><th>HE Total (h)</th><th>Colaboradores c/ HE</th><th>Média HE/Colaborador (h)</th></tr>';
+  const tbodyU = unidadesOrdenadas.map(u=>{
+    const o = byUnidade[u]; const tot = o.ex+o.en;
+    return '<tr><td>'+u+'</td><td>'+o.ex.toFixed(1)+'</td><td>'+o.en.toFixed(1)+'</td><td><b>'+tot.toFixed(1)+'</b></td><td>'+o.n+'</td><td>'+(tot/o.n).toFixed(1)+'</td></tr>';
+  }).join('');
+  document.querySelector('#he-table thead').innerHTML = theadU;
+  document.querySelector('#he-table tbody').innerHTML = tbodyU;
+
+  // ---- Tabela: Detalhamento por Colaborador · HE a 50% e 100% ----
+  let detailRows = rows.slice();
+  if(heUiState.q){
+    const q = normTxt(heUiState.q);
+    detailRows = detailRows.filter(h=> normTxt(h.nome).includes(q));
+  }
+  const sortFns = {
+    'total-desc': (a,b)=> (b.ex+b.en)-(a.ex+a.en),
+    'total-asc': (a,b)=> (a.ex+a.en)-(b.ex+b.en),
+    'ex-desc': (a,b)=> b.ex-a.ex,
+    'ex-asc': (a,b)=> a.ex-b.ex,
+    'en-desc': (a,b)=> b.en-a.en,
+    'en-asc': (a,b)=> a.en-b.en,
+  };
+  if(heUiState.sort && sortFns[heUiState.sort]) detailRows = detailRows.slice().sort(sortFns[heUiState.sort]);
+  document.getElementById('he-detail-count').textContent = detailRows.length+' colaborador(es)';
+  const theadD = '<tr><th>Colaborador</th><th>Unidade</th><th>Setor</th><th>Cargo</th><th>Turno</th><th>HE 50% (h)</th><th>HE 100% (h)</th><th>Total (h)</th></tr>';
+  const tbodyD = detailRows.length ? detailRows.map(h=>{
+    const tot = h.ex+h.en;
+    const nome = h.nome.trim();
+    const funcao = FUNCAO_BY_MAT[h.matricula] || '—';
+    return '<tr><td class="td-nome" style="max-width:220px;" title="'+nome+'">'+nome+'</td><td>'+h.unidade+'</td><td>'+h.cargo+'</td><td>'+funcao+'</td><td>'+h.turno+'</td><td>'+h.ex.toFixed(1)+'</td><td>'+h.en.toFixed(1)+'</td><td><b>'+tot.toFixed(1)+'</b></td></tr>';
+  }).join('') : '<tr><td colspan="8" style="text-align:center; color:var(--tx-muted); padding:20px;">Nenhum colaborador encontrado para a busca/filtros atuais.</td></tr>';
+  document.querySelector('#he-detail-table thead').innerHTML = theadD;
+  document.querySelector('#he-detail-table tbody').innerHTML = tbodyD;
+
+  // ---- Agregações para os gráficos: Turno, Setor, Cargo ----
+  const byTurno = {};
+  rows.forEach(h=>{
+    if(!byTurno[h.turno]) byTurno[h.turno] = {ex:0,en:0,n:0};
+    byTurno[h.turno].ex += h.ex; byTurno[h.turno].en += h.en; byTurno[h.turno].n += 1;
+  });
+  const turnosOrdenados = Object.keys(byTurno).sort((a,b)=> (byTurno[b].ex+byTurno[b].en) - (byTurno[a].ex+byTurno[a].en));
+
+  const bySetor = {};
+  rows.forEach(h=>{
+    if(!bySetor[h.cargo]) bySetor[h.cargo] = {ex:0,en:0,n:0};
+    bySetor[h.cargo].ex += h.ex; bySetor[h.cargo].en += h.en; bySetor[h.cargo].n += 1;
+  });
+  const setoresOrdenados = Object.keys(bySetor).sort((a,b)=> (bySetor[b].ex+bySetor[b].en)-(bySetor[a].ex+bySetor[a].en));
+
+  const byCargo = {};
+  rows.forEach(h=>{
+    const f = FUNCAO_BY_MAT[h.matricula] || 'Não informado';
+    if(!byCargo[f]) byCargo[f] = {ex:0,en:0,n:0};
+    byCargo[f].ex += h.ex; byCargo[f].en += h.en; byCargo[f].n += 1;
+  });
+  const cargosOrdenados = Object.keys(byCargo).sort((a,b)=> (byCargo[b].ex+byCargo[b].en)-(byCargo[a].ex+byCargo[a].en));
+
+  // ---- Visão Geral: Composição (rosca) ----
+  renderChartSafe('chHeDonut','Composição HE 50% × HE 100%',()=>{
+    destroyChart('heDonut');
+    charts.heDonut = new Chart(document.getElementById('chHeDonut'), {
+      type:'doughnut',
+      data:{labels:['HE 50% (diurna)','HE 100% (noturna)'], datasets:[{data:[+totalEx.toFixed(1), +totalEn.toFixed(1)], backgroundColor:['#0079C2','#1E3A6E']}]},
+      options:{responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10.5}}}}},
+      plugins:[{
+        id:'centerText',
+        afterDraw(chart){
+          const {ctx, chartArea:{width,height,left,top}} = chart;
+          ctx.save(); ctx.font='800 15px Inter, sans-serif'; ctx.fillStyle='#0F1B2D'; ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(hoursToHHMM(totalHE), left+width/2, top+height/2);
+          ctx.restore();
+        }
+      }]
+    });
+  });
+
+  // ---- Por Unidade & Turno ----
+  buildHeStackedBar('chHeUnidade','heUnidade','Horas Extras por Unidade', unidadesOrdenadas, byUnidade, Object.fromEntries(unidadesOrdenadas.map(u=>[u,byUnidade[u].n])));
+  buildHeStackedBar('chHeTurno','heTurno','Horas Extras por Turno', turnosOrdenados, byTurno, Object.fromEntries(turnosOrdenados.map(t=>[t,byTurno[t].n])));
+
+  // ---- Por Setor ----
+  buildHeStackedBar('chHeSetor','heSetor','Horas Extras por Setor', setoresOrdenados, bySetor, Object.fromEntries(setoresOrdenados.map(s=>[s,bySetor[s].n])));
+
+  // ---- Por Cargo ----
+  buildHeStackedBar('chHeCargo','heCargo','Horas Extras por Cargo', cargosOrdenados, byCargo, Object.fromEntries(cargosOrdenados.map(c=>[c,byCargo[c].n])));
+
+  const raf = (typeof requestAnimationFrame==='function') ? requestAnimationFrame : (fn)=>setTimeout(fn,16);
+  raf(()=>raf(()=>{
+    Object.keys(charts).forEach(key=>{
+      const c = charts[key];
+      if(c && typeof c.resize==='function'){ try{ c.resize(); }catch(e){} }
+    });
+  }));
+}
+
+/* ========================= RENDER ALL ========================= */
+function renderAll(){
+  document.getElementById('fcount').textContent = filteredColaboradores().length+' colaborador(es) no filtro atual';
+  renderDimensionamento();
+  renderKPIs();
+  renderGrade();
+  renderOperacional();
+  renderCharts();
+  renderEvolucao();
+  renderMovimentacoes();
+  renderResumo();
+  renderHoraExtra();
+}
+
+/* ========================= SCROLL-SPY ========================= */
+function initScrollSpy(){
+  const items = document.querySelectorAll('.sb-item');
+  items.forEach(it=>{
+    it.addEventListener('click', ()=>{
+      const target = document.getElementById(it.dataset.target);
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      closeSidebarMobile();
+    });
+  });
+  const sections = Array.from(document.querySelectorAll('section.psec'));
+  const onScroll = ()=>{
+    let current = sections[0];
+    const offset = 130;
+    sections.forEach(s=>{
+      if(s.getBoundingClientRect().top - offset <= 0) current = s;
+    });
+    items.forEach(it=>it.classList.toggle('active', it.dataset.target===current.id));
+  };
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+}
+
+/* ========================= SIDEBAR COLAPSAVEL ========================= */
+function initSidebarToggle(){
+  const sidebar = document.getElementById('sidebar');
+  const main = document.querySelector('.main');
+  const toggle = document.getElementById('sbToggle');
+  const txt = toggle.querySelector('.sb-toggle-txt');
+  const applyState = (collapsed)=>{
+    sidebar.classList.toggle('col', collapsed);
+    main.classList.toggle('exp', collapsed);
+    txt.textContent = collapsed ? 'Expandir' : 'Recolher';
+  };
+  let collapsed = false;
+  try{ collapsed = localStorage.getItem('sb-collapsed') === '1'; }catch(e){}
+  applyState(collapsed);
+  toggle.addEventListener('click', ()=>{
+    collapsed = !sidebar.classList.contains('col');
+    applyState(collapsed);
+    try{ localStorage.setItem('sb-collapsed', collapsed ? '1' : '0'); }catch(e){}
+  });
+}
+
+/* ========================= MENU MOBILE ========================= */
+function closeSidebarMobile(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbBackdrop').classList.remove('show');
+}
+function initMobileMenu(){
+  const btn = document.getElementById('btnHamb');
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sbBackdrop');
+  btn.addEventListener('click', ()=>{
+    sidebar.classList.toggle('open');
+    backdrop.classList.toggle('show');
+  });
+  backdrop.addEventListener('click', closeSidebarMobile);
+}
+
+function initHoraExtraUI(){
+  const searchEl = document.getElementById('he-search');
+  const sortEl = document.getElementById('he-sort');
+  if(searchEl) searchEl.addEventListener('input', ()=>{ heUiState.q = searchEl.value; renderHoraExtra(); });
+  if(sortEl) sortEl.addEventListener('change', ()=>{ heUiState.sort = sortEl.value; renderHoraExtra(); });
+}
+
+/* ========================= INIT ========================= */
+function forceResizeCharts(){
+  Object.keys(charts).forEach(key=>{
+    const c = charts[key];
+    if(c && typeof c.resize==='function'){ try{ c.resize(); c.update(); }catch(e){} }
+  });
+}
+window.addEventListener('DOMContentLoaded', ()=>{
+  initFilters();
+  initGridScrollSync({scrollColId:'gradeScrollCol', frozenColId:'gradeFrozenCol', arrowLId:'gArrowL', arrowRId:'gArrowR'});
+  initGridScrollSync({scrollColId:'operScrollCol', frozenColId:'operFrozenCol', arrowLId:'oArrowL', arrowRId:'oArrowR'});
+  initScrollSpy();
+  initMobileMenu();
+  initSidebarToggle();
+  initHoraExtraUI();
+  renderAll();
+  window.addEventListener('resize', ()=>{ syncGradeRowHeights('#gradeWrap'); syncGradeRowHeights('#operWrap'); });
+
+  // Rede de segurança: força o recálculo de tamanho de todos os gráficos após o
+  // carregamento completo da página e da fonte web (Inter), casos em que o
+  // canvas é medido com o tamanho ainda incorreto no primeiro paint.
+  const raf = (typeof requestAnimationFrame==='function') ? requestAnimationFrame : (fn)=>setTimeout(fn,16);
+  raf(()=>raf(forceResizeCharts));
+  window.addEventListener('load', ()=>{ setTimeout(forceResizeCharts, 60); });
+  if(document.fonts && document.fonts.ready && typeof document.fonts.ready.then==='function'){
+    document.fonts.ready.then(()=>{ setTimeout(forceResizeCharts, 30); });
+  }
+  setTimeout(forceResizeCharts, 500);
+  setTimeout(forceResizeCharts, 1200);
+});
+</script>
+</body>
+</html>
