@@ -210,11 +210,11 @@ table.tgrade-uni{table-layout:fixed;}
    nao coincidem exatamente, o que causava uma linha branca entre elas. */
 table.tgrade-uni td.stcol, table.tgrade-uni th.stcol{position:sticky; left:0; z-index:2; padding:0 !important; box-shadow:2px 0 0 var(--indigo);}
 table.tgrade-uni thead th.stcol{z-index:6;}
-.stc-flex{display:flex; width:362px; height:100%;}
+.stc-flex{display:flex; width:402px; height:100%;}
 .stc-flex>div{box-sizing:border-box; display:flex; align-items:center; justify-content:center; padding:5px 6px; border-right:1px solid var(--border-light); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .stc-flex>div:last-child{border-right:none;}
 .stc-flex>div:nth-child(1){flex:0 0 110px;}
-.stc-flex>div:nth-child(2){flex:0 0 170px;}
+.stc-flex>div:nth-child(2){flex:0 0 210px;}
 .stc-flex>div:nth-child(3){flex:0 0 82px;}
 thead .stc-flex>div{padding:6px 4px; border-right:1px solid rgba(255,255,255,.25); white-space:normal; line-height:1.25;}
 
@@ -931,7 +931,7 @@ function renderOperacional(){
   const dias = turnosData[0].dias;
   const setorAtivo = !!state.cargo; // filtro "Setor" tambem se aplica a esta grade
 
-  let th = '<table class="tgrade tgrade-uni"><colgroup><col style="width:362px">';
+  let th = '<table class="tgrade tgrade-uni"><colgroup><col style="width:402px">';
   dias.forEach(()=>{ th += '<col style="width:34px">'; });
   th += '<col style="width:74px"><col style="width:74px"></colgroup><thead><tr><th class="stcol"><div class="stc-flex"><div>Setor</div><div>Cargo</div><div>Solicitado</div></div></th>';
   dias.forEach(iso=>{
@@ -985,7 +985,7 @@ function renderOperacional(){
     });
     const mediaTot = diasComDadoTotal>0 ? somaTotalRealizado/diasComDadoTotal : 0;
     const pctMedioTot = turnoSolicTotal>0 ? (mediaTot/turnoSolicTotal*100) : 100;
-    sh += '<tr class="tr-res-label" style="color:var(--indigo);"><td class="stcol"><div class="stc-flex"><div style="flex-basis:280px; justify-content:flex-end; padding-right:10px; font-weight:800;">TOTAL '+t.turno+'</div><div style="flex-basis:82px; font-weight:800;">'+turnoSolicTotal+'</div></div></td>'+totCells+'<td style="font-weight:800;">'+mediaTot.toFixed(1)+'</td><td class="'+classCellOperacional(pctMedioTot)+'" style="font-weight:800;">'+pctMedioTot.toFixed(0)+'%</td></tr>';
+    sh += '<tr class="tr-res-label" style="color:var(--indigo);"><td class="stcol"><div class="stc-flex"><div style="flex-basis:320px; justify-content:flex-end; padding-right:10px; font-weight:800;">TOTAL '+t.turno+'</div><div style="flex-basis:82px; font-weight:800;">'+turnoSolicTotal+'</div></div></td>'+totCells+'<td style="font-weight:800;">'+mediaTot.toFixed(1)+'</td><td class="'+classCellOperacional(pctMedioTot)+'" style="font-weight:800;">'+pctMedioTot.toFixed(0)+'%</td></tr>';
 
     gruposFiltrados.forEach(gr=>{
       let somaRealizado=0, diasComDado=0;
