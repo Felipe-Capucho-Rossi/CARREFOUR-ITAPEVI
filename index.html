@@ -1378,15 +1378,17 @@ function renderDimensionamento(){
 
     const cargoRowsDaUnidade = DIM_CARGO_DADOS.filter(d=> d.unidade===uni && (!state.funcao || d.cargo===state.funcao));
 
-    // escala compartilhada das barras (mesmo padrão visual do card): maior valor entre todos os Setores da unidade
-    const cardMax = Math.max(1, ...Object.values(setoresDaUnidade).map(s=>Math.max(s.solicitado, s.contratado)));
-
     const deltaTxt = (gap)=>{
       const cls = gap<0 ? 'dim-delta-pos' : (gap>0 ? 'dim-delta-neg' : 'dim-delta-zero');
       const txt = gap<0 ? ('+'+Math.abs(gap)) : (gap>0 ? ('-'+gap) : '=');
       return '<span class="dim-delta-txt '+cls+'">'+txt+'</span>';
     };
-    const barPair = (sol, contr, scaleMax, sit)=>{
+    const barPair = (sol, contr, _scaleMaxIgnored, sit)=>{
+      // Escala LOCAL ao próprio par (nunca compartilhada com outros Setores/Cargos do card):
+      // o maior entre solicitado e contratado deste item vira a referência de 100% da trilha.
+      // Isso garante que uma situação de 100% de atendimento sempre mostre a barra cheia,
+      // independentemente de quão grande seja outro Setor/Cargo no mesmo card.
+      const scaleMax = Math.max(sol, contr, 1);
       const solW = scaleMax>0 ? Math.max(sol>0?3:0, Math.min(100, sol/scaleMax*100)) : 0;
       const contrW = scaleMax>0 ? Math.max(contr>0?3:0, Math.min(100, contr/scaleMax*100)) : 0;
       const contrColor = sit.cls==='dim-gap-crit' ? 'var(--red)' : sit.cls==='dim-gap-warn' ? 'var(--amber)' : sit.cls==='dim-gap-exc' ? 'var(--blue-dark)' : 'var(--green)';
@@ -1411,14 +1413,13 @@ function renderDimensionamento(){
         const pb = b.solicitado>0 ? b.contratado/b.solicitado : 1;
         return pa - pb;
       });
-      const setorCargoMax = Math.max(1, ...cargosDoSetor.map(c=>Math.max(c.solicitado, c.contratado)));
       const cargosHtml = cargosDoSetor.length ? '<div class="dim-cargo-list">'+cargosDoSetor.map(c=>{
         const cPct = c.solicitado>0 ? (c.contratado/c.solicitado*100) : 100;
         const cGap = c.solicitado - c.contratado;
         const csit = situacaoDim(cPct);
         return '<div class="dim-cargo-item">'
           +'<div class="dim-cargo-head"><span>'+c.cargo+'</span><div class="dim-row-badges"><span class="dim-pct-chip '+csit.pctCls+'">'+cPct.toFixed(1)+'%</span>'+deltaTxt(cGap)+'</div></div>'
-          +barPair(c.solicitado, c.contratado, setorCargoMax, csit)
+          +barPair(c.solicitado, c.contratado, null, csit)
           +'<div class="dim-turno-chips">'
             +turnoChip('1ºT', c.turnos['1º Turno'])
             +turnoChip('2ºT', c.turnos['2º Turno'])
@@ -1429,7 +1430,7 @@ function renderDimensionamento(){
 
       return '<div class="dim-setor-row">'
         +'<div class="dim-setor-head"><span>'+setor+'</span><div class="dim-row-badges"><span class="dim-pct-chip '+sit.pctCls+'">'+sPct.toFixed(1)+'%</span>'+deltaTxt(sGap)+'</div></div>'
-        +barPair(s.solicitado, s.contratado, cardMax, sit)
+        +barPair(s.solicitado, s.contratado, null, sit)
         +cargosHtml
         +'</div>';
     }).join('');
