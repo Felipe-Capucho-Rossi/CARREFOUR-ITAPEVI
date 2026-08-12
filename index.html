@@ -165,6 +165,7 @@ table.dtbl tbody tr:last-child td{border-bottom:none;}
 .dim-bar-fill{height:100%; border-radius:5px; min-width:2px;}
 .dim-bar-val{flex-shrink:0; font-weight:800; color:var(--tx-primary);}
 
+.dim-total-caption{font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px; color:var(--tx-muted); margin-bottom:4px;}
 .dim-cargo-list{margin-top:8px; padding-left:10px; border-left:2px solid var(--border-light);}
 .dim-cargo-item{padding:6px 0 6px 6px;}
 .dim-cargo-item:not(:last-child){border-bottom:1px dashed var(--border-light);}
@@ -1428,9 +1429,19 @@ function renderDimensionamento(){
           +'</div></div>';
       }).join('')+'</div>' : '';
 
+      // Evita ambiguidade: quando o Setor tem exatamente 1 Cargo, a barra agregada do
+      // Setor e a barra do Cargo abaixo mostrariam os mesmos números sem nenhuma
+      // indicação de a qual cargo pertencem — nesse caso, mostra só a barra do Cargo
+      // (já rotulada com o nome do cargo no cabeçalho dela). Quando há 2+ Cargos, a
+      // barra agregada é mantida mas rotulada explicitamente como "Total do Setor",
+      // para nunca aparecer como se fosse um cargo sem nome.
+      const totalBarHtml = cargosDoSetor.length===1 ? '' :
+        (cargosDoSetor.length>1 ? '<div class="dim-total-caption">Total do Setor (todos os cargos)</div>' : '')
+        + barPair(s.solicitado, s.contratado, null, sit);
+
       return '<div class="dim-setor-row">'
         +'<div class="dim-setor-head"><span>'+setor+'</span><div class="dim-row-badges"><span class="dim-pct-chip '+sit.pctCls+'">'+sPct.toFixed(1)+'%</span>'+deltaTxt(sGap)+'</div></div>'
-        +barPair(s.solicitado, s.contratado, null, sit)
+        +totalBarHtml
         +cargosHtml
         +'</div>';
     }).join('');
